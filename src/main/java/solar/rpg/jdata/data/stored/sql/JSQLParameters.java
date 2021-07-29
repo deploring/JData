@@ -1,6 +1,7 @@
 package solar.rpg.jdata.data.stored.sql;
 
 import org.jetbrains.annotations.NotNull;
+import solar.rpg.jdata.data.stored.generic.JDataParameter;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -8,23 +9,23 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * Rather than using an array of {@link JSQLParameter}, this helper class can directly interact with
- * {@link PreparedStatement} to build WHERE clauses and pass in parameters.
+ * Rather than using an array of {@link JDataParameter}, this helper class can directly interact
+ * with {@link PreparedStatement} queries to build WHERE clauses and pass in parameters.
  *
  * @author jskinner
  * @since 1.0.0
  */
-public final class JSQLParameters implements Iterable<JSQLParameter> {
+public final class JSQLParameters implements Iterable<JDataParameter> {
 
     @NotNull
-    private final JSQLParameter[] parameters;
+    private final JDataParameter[] parameters;
 
     /**
      * Builds a {@link JSQLParameters} object using supplied parameters.
      *
-     * @param parameters Supplied parameters.
+     * @param parameters Supplied set of {@link JDataParameter}.
      */
-    public JSQLParameters(@NotNull JSQLParameter[] parameters) {
+    public JSQLParameters(@NotNull JDataParameter[] parameters) {
         this.parameters = parameters;
     }
 
@@ -43,13 +44,13 @@ public final class JSQLParameters implements Iterable<JSQLParameter> {
     }
 
     /**
-     * Builds a WHERE clause for a {@link PreparedStatement} using the provided parameters.
+     * Builds a parameterized WHERE clause for a {@link PreparedStatement} SQL query using the provided parameters.
      */
-    public @NotNull
-    String buildWhereClause() {
+    @NotNull
+    public String buildWhereClause() {
         StringBuilder whereClause = new StringBuilder();
 
-        for (JSQLParameter parameter : parameters)
+        for (JDataParameter parameter : parameters)
             whereClause.append(String.format(
                     " %1$s%2$s = :%2$s ",
                     whereClause.isEmpty() ? "" : " AND ",
@@ -59,7 +60,7 @@ public final class JSQLParameters implements Iterable<JSQLParameter> {
     }
 
     /**
-     * Populates a {@link PreparedStatement} object using the provided parameters.
+     * Populates a {@link PreparedStatement} object's parameters using the provided parameters.
      *
      * @param statement The query object to populate.
      * @throws SQLException Can fail for any number of reasons.
@@ -71,7 +72,7 @@ public final class JSQLParameters implements Iterable<JSQLParameter> {
 
     @Override
     @NotNull
-    public Iterator<JSQLParameter> iterator() {
+    public Iterator<JDataParameter> iterator() {
         return Arrays.asList(parameters).iterator();
     }
 }
