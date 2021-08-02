@@ -17,7 +17,7 @@ import java.util.ArrayList;
  * @author jskinner
  * @since 1.0.0
  */
-public abstract class JStoredDataProcessor<T extends IJStoredData<?>> {
+public abstract class JStoredDataProcessor<T extends IJStoredData> {
 
     /**
      * Responsible for managing of the lifecycle all {@link IJStoredData} instances.
@@ -65,7 +65,7 @@ public abstract class JStoredDataProcessor<T extends IJStoredData<?>> {
             boolean match = true;
 
             for (IJDataParameter param : params) {
-                JStoredDataField<?> storedDataField = storedData.getFieldByName(param.getParameterName());
+                JDataField<?> storedDataField = storedData.getFieldByName(param.getParameterName());
                 assert storedDataField != null : String.format("Could not find stored data field %s", param.getParameterName());
                 assert storedDataField.getStoredValue() != null : "Stored data field value was not set";
 

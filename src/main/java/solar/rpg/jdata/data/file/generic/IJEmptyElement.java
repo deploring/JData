@@ -1,11 +1,9 @@
 package solar.rpg.jdata.data.file.generic;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import solar.rpg.jdata.data.stored.generic.JStoredDataField;
+import solar.rpg.jdata.data.variants.JDataType;
 
-import java.util.Collections;
-import java.util.Iterator;
+import java.io.Serializable;
 
 /**
  * Use this sub-implementation of {@link IJFileElement} where no data is held inside the element.
@@ -14,50 +12,14 @@ import java.util.Iterator;
  * @author jskinner
  * @since 1.0.0
  */
-public interface IJEmptyElement extends IJFileElement<Object> {
+public interface IJEmptyElement extends IJFileElement {
 
     /**
      * {@link IJEmptyElement} does not have any fields or associated values.
      */
     @Nullable
     @Override
-    default JStoredDataField<?> getFieldInfo(@NotNull String name) {
+    default Serializable getValue(JDataType dataType) {
         return null;
-    }
-
-    /**
-     * {@link IJEmptyElement} does not have any fields or associated values.
-     */
-    @Nullable
-    @Override
-    default JStoredDataField<?> getFieldInfo(int index) {
-        return null;
-    }
-
-    /**
-     * {@link IJEmptyElement} does not have any fields or associated values.
-     */
-    @Nullable
-    @Override
-    default Object getValue(@NotNull String fieldName) {
-        return null;
-    }
-
-    /**
-     * {@link IJEmptyElement} does not have any fields or associated values.
-     */
-    @Nullable
-    @Override
-    default Object getValue(int index) {
-        return null;
-    }
-
-    /**
-     * {@link IJEmptyElement} does not have any fields or associated values.
-     */
-    @NotNull
-    @Override
-    default Iterator<JStoredDataField<?>> iterator() {
-        return Collections.emptyIterator();
     }
 }

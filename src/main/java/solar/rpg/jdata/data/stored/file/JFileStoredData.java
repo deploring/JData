@@ -2,17 +2,30 @@ package solar.rpg.jdata.data.stored.file;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import solar.rpg.jdata.data.stored.generic.IJDataParameter;
 import solar.rpg.jdata.data.stored.generic.IJStoredData;
-import solar.rpg.jdata.data.stored.generic.JStoredDataField;
+import solar.rpg.jdata.data.stored.generic.JDataField;
+import solar.rpg.jdata.data.stored.generic.JDataParameter;
 
-import java.util.Iterator;
+public abstract class JFileStoredData implements IJStoredData {
 
-public class JFileStoredData implements IJStoredData<JFileStoredDataField> {
+    private final JDataField[] dataFields;
+
+    /**
+     * @param dataFields
+     */
+    protected JFileStoredData(JDataField[] dataFields) {
+        this.dataFields = dataFields;
+    }
 
     @Nullable
     @Override
-    public JStoredDataField<?> getFieldByName(@NotNull String fieldName) {
+    public JDataField getField(@NotNull String fieldName) {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public JDataField getField(int fieldIndex) {
         return null;
     }
 
@@ -26,20 +39,20 @@ public class JFileStoredData implements IJStoredData<JFileStoredDataField> {
 
     }
 
+    @NotNull
     @Override
-    public Iterator<JFileStoredDataField> iterator() {
-        return null;
+    public JDataParameter[] getPrimaryFieldSearchParams() {
+        return new JDataParameter[0];
     }
 
     @NotNull
     @Override
-    public IJDataParameter[] getPrimaryFieldSearchParams() {
-        return new IJDataParameter[0];
+    public JDataParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues) {
+        return new JDataParameter[0];
     }
 
-    @NotNull
     @Override
-    public IJDataParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues) {
-        return new IJDataParameter[0];
+    public boolean canCommit() {
+        return false;
     }
 }
