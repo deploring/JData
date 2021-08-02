@@ -30,15 +30,15 @@ public abstract class JSQLStoredData implements IJStoredData {
     private final JJDBCDatabaseHelper database;
 
     /**
-     * Table columns- defines the structure of this record.
+     * Table columns- defines the structure of this DB record.
      */
-    private final JSQLDataField[] dataFields;
+    private final JDataField[] dataFields;
 
     /**
      * @param database   Database connection.
      * @param dataFields Database column info, provided from the child class.
      */
-    protected JSQLStoredData(JJDBCDatabaseHelper database, JSQLDataField[] dataFields) {
+    protected JSQLStoredData(JJDBCDatabaseHelper database, JDataField[] dataFields) {
         this.database = database;
         this.dataFields = dataFields;
     }
@@ -49,7 +49,7 @@ public abstract class JSQLStoredData implements IJStoredData {
      */
     @Override
     @Nullable
-    public JSQLDataField getField(@NotNull String fieldName) {
+    public JDataField getField(@NotNull String fieldName) {
         return Arrays.stream(dataFields).filter(field ->
                 field.getFieldName().equals(fieldName)).findFirst().orElse(null);
     }
@@ -60,13 +60,46 @@ public abstract class JSQLStoredData implements IJStoredData {
      */
     @Override
     @NotNull
-    public JSQLDataField getField(int fieldIndex) {
+    public JDataField getField(int fieldIndex) {
         return dataFields[fieldIndex];
+    }
+
+    /**
+     * Refreshes the stored data object's field values using the latest ones in the database.
+     * This will overwrite any uncommitted data, and requires the object to be initialised.
+     */
+    @Override
+    public void refresh() {
+        reload(new JSQLParameters(getPrimaryFieldSearchParams()));
     }
 
     @Override
     public void commit() {
         database.commitStoredData(this);
+    }
+
+    @NotNull
+    @Override
+    public JDataParameter[] getPrimaryFieldSearchParams() {
+        List<JDataParameter> list = new LinkedList<>();
+        return Arrays.stream(dataFields).filter(JDataField::isPrimary)
+                .map(JDataField::asSQLParameter).toArray(JDataParameter[]::new);
+    }
+
+    /**
+     * Returns a {@link JSQLParameters} object containing each primary field, along with provided search values.
+     *
+     * @param keyValues The primary key values for each parameter.
+     */
+    @NotNull
+    @Override
+    public JDataParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues) {
+        List<JDataParameter> list = new LinkedList<>();
+        Arrays.stream(dataFields).forEachOrdered(storedDataField -> list.add(new JDataParameter(storedDataField.getFieldName(), keyValues[list.size()])));
+
+        assert keyValues.length == list.size() : "Expected primary key amount to match key value amount";
+
+        return list.toArray(new JDataParameter[0]);
     }
 
     /**
@@ -105,15 +138,6 @@ public abstract class JSQLStoredData implements IJStoredData {
         }
     }
 
-    /**
-     * Refreshes the stored data object's field values using the latest ones in the database.
-     * This will overwrite any uncommitted data, and requires the object to be initialised.
-     */
-    @Override
-    public void refresh() {
-        reload(new JSQLParameters(getPrimaryFieldSearchParams()));
-    }
-
     public Iterator<JSQLDataField> iterator() {
         return Arrays.asList(dataFields).iterator();
     }
@@ -124,29 +148,6 @@ public abstract class JSQLStoredData implements IJStoredData {
     @NotNull
     public String getStoredDataTableName() {
         return getClass().getSimpleName().substring(1);
-    }
-
-    @NotNull
-    @Override
-    public JDataParameter[] getPrimaryFieldSearchParams() {
-        return Arrays.stream(dataFields).filter(JDataField::isPrimary)
-                .map(JSQLDataField::asSQLParameter).toArray(JDataField[]::new);
-    }
-
-    /**
-     * Returns a {@link JSQLParameters} object containing each primary field, along with provided search values.
-     *
-     * @param keyValues The primary key values for each parameter.
-     */
-    @NotNull
-    @Override
-    public JSQLParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues) {
-        List<JSQLParameter> list = new LinkedList<>();
-        Arrays.stream(dataFields).forEachOrdered(storedDataField -> list.add(new JSQLParameter(storedDataField.getFieldName(), keyValues[list.size()])));
-
-        assert keyValues.length == list.size() : "Expected primary key amount to match key value amount";
-
-        return list.toArray(new JSQLParameter[0]);
     }
 
     /**
