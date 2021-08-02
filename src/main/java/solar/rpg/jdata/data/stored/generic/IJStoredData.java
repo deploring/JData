@@ -6,15 +6,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Iterator;
 
 /**
- * Represents a piece of relational data which is further implemented by the storage medium.
- * They can hold the data in a cached state before committing to the target file.
+ * Represents a piece of multivariate data which is further implemented by a storage medium.
+ * They can hold the data in a cached state before committing to the target storag emedium.
  * The lifecycle of these objects is managed by a {@link JStoredDataProcessor}.
  *
- * @param <T> Stored data objects contain an array {@link JStoredDataField}.
+ * Implementations of this interface should be aware of their variables and structure, as defined
+ * by any given implementations of {@link JStoredDataField}. Each stored data object should contain
+ * at least one primary key field, and one non-primary key field.
+ *
  * @author jskinner
  * @since 1.0.0
  */
-public interface IJStoredData<T extends JStoredDataField<?>> extends Iterable<T> {
+public interface IJStoredData {
 
     /**
      * Returns a {@link JStoredDataField} instance with the given field name.
@@ -25,43 +28,38 @@ public interface IJStoredData<T extends JStoredDataField<?>> extends Iterable<T>
     JStoredDataField<?> getFieldByName(@NotNull String fieldName);
 
     /**
-     * Commits the current state of the value in memory to the storage medium.
+     * Commits the current state of the field values in memory to the storage medium.
+     * This should also reset <em>original values</em>, as they are now unchanged.
      */
     void commit();
 
     /**
-     * Update all values on all {$link JStoredDataField} with the latest data from the storage medium.
+     * Update all values on all {@link JStoredDataField} objects with the latest data from the storage medium.
      */
     void refresh();
 
     /**
-     * Returns an iterator which provides sequential access to all of the stored data field information.
+     * Returns an {@code Iterator} which provides sequential access to all of th\] field information.
      */
-    Iterator<T> iterator();
+    Iterator<JStoredDataField<?>> fieldIterator();
 
     /**
-     * Returns all primary {@link JStoredDataField} objects as an array of {@link IJDataParameter} objects.
+     * Returns all primary {@link JStoredDataField} objects as an array of {@link JDataParameter} objects.
      */
     @NotNull
-    IJDataParameter[] getPrimaryFieldSearchParams();
+    JDataParameter[] getPrimaryFieldSearchParams();
 
     /**
-     * Returns an array of {@link IJDataParameter} objects containing each primary field, along with provided
-     * search values.
+     * Returns an array of {@link JDataParameter} objects containing each primary field, along with provided
+     * search values. This can be used for record searches in the stored data object.
      *
      * @param keyValues The primary key values for each parameter.
      */
     @NotNull
-    IJDataParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues);
+    JDataParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues);
 
     /**
-     * Returns True if there are any changes to any non-primary data fields.
+     * @return True, if there are any changes to any non-primary data fields.
      */
-    default boolean canCommit() {
-        for (T dataField : this)
-            if (dataField.isChanged())
-                assert !dataField.isPrimary() : "Primary fields cannot be changed";
-            else return false;
-        return true;
-    }
+    boolean canCommit();
 }

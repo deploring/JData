@@ -1,11 +1,9 @@
 package solar.rpg.jdata.data.stored.generic;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a single column of data of a specific type in a {@link IJStoredData} object.
- * This is generic data and is used to cache and push the given data into the storage medium.
  *
  * @param <T> The type of data that is stored under this field.
  * @author jskinner
@@ -14,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class JStoredDataField<T> {
 
     /**
-     * Unique name that identifies the field in the storage medium.
+     * Unique name that identifies the field in the {@link IJStoredData} object.
      */
     @NotNull
     private final String fieldName;
@@ -22,76 +20,36 @@ public abstract class JStoredDataField<T> {
     /**
      * Denotes whether this field is a primary identifier of a {@link IJStoredData} object.
      * Primary field values cannot be changed once they are set, and are usually determined automatically.
+     * An exception for automatic determination of primary keys is metadata, as we may wish to customise this.
      */
     private final boolean isPrimary;
 
     /**
-     * Holds the given field value in memory until it is committed to the storage medium.
-     * The original value is also held in memory so it can be compared for any reason.
-     */
-    @Nullable
-    private T storedValue, originalStoredValue;
-
-    /**
      * @param fieldName Field name identifier.
-     * @param isPrimary True, if this field is a primary identifier of the stored data object.
+     * @param isPrimary True, if this field is a primary identifier of the associated stored data object.
      */
     public JStoredDataField(@NotNull String fieldName, boolean isPrimary) {
         this.fieldName = fieldName;
         this.isPrimary = isPrimary;
     }
 
+    /**
+     * Returns the unique names that identities this field in the associated {@link IJStoredData} object.
+     */
     @NotNull
     public String getFieldName() {
         return fieldName;
     }
 
+    /**
+     * @return True, if this field is a primary identifier of the associated stored data object.
+     */
     public boolean isPrimary() {
         return isPrimary;
     }
 
-    @Nullable
-    public T getStoredValue() {
-        return storedValue;
-    }
-
     /**
-     * Sets the current in-memory stored data field value.
-     * If the original value has not been set, this is also set.
-     *
-     * @param storedValue New stored data field value.
+     * @return The {@code Class} of the stored type.
      */
-    @SuppressWarnings("unchecked") //TODO: Check consequences of this.
-    public void setStoredValue(@NotNull Object storedValue) {
-        this.storedValue = (T) storedValue;
-
-        if (originalStoredValue == null)
-            originalStoredValue = (T) storedValue;
-    }
-
-    /**
-     * Returns the original stored data field value, even if it has been changed in-memory.
-     */
-    @Nullable
-    public T getOriginalStoredValue() {
-        return originalStoredValue;
-    }
-
-    /**
-     * Returns True if the original stored value does not match the current stored value.
-     */
-    public boolean isChanged() {
-        return originalStoredValue != null && !originalStoredValue.equals(storedValue);
-    }
-
-    /**
-     * Writes the in-memory value to the original value.
-     * This should be called after committing data to the database.
-     */
-    public void commit() {
-        assert isChanged() : "Data field value is not ready for committing";
-        assert !isPrimary() : "Primary data fields cannot be committed";
-
-        originalStoredValue = storedValue;
-    }
+    public abstract Class<T> getTypeClass();
 }
