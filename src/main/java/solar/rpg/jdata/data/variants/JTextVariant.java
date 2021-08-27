@@ -56,8 +56,15 @@ public final class JTextVariant implements Serializable {
     }
 
     /**
+     * @return The deserialized variant value, under the current data type.
+     */
+    public Serializable getValue() {
+        return fieldType.deserialize(rawValue);
+    }
+
+    /**
      * @param dataType The data type to deserialize the value to.
-     * @return The deserialized variant value.
+     * @return The deserialized variant value, under the given data type.
      */
     public Serializable getValue(JDataType dataType) {
         return dataType.deserialize(rawValue);

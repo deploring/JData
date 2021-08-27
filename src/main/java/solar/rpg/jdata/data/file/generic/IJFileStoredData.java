@@ -13,9 +13,30 @@ import java.io.File;
  */
 public interface IJFileStoredData extends IJStoredData {
 
-    String getFilePath();
+    /**
+     * @return {@code File} object representing the directory path containing the file (must exist).
+     */
+    File getDirectory();
 
-    default File getFile() {
-        return new File(getFilePath());
+    /**
+     * @return {@code File} object representing the file path (may or may not exist).
+     */
+    File getFile();
+
+    /**
+     * @return True, if the given directory path exists, is a directory, and the JVM has read+write access.
+     */
+    default boolean isDirectoryPathValid() {
+        File directory = getDirectory();
+        return directory.exists() && directory.isDirectory() && directory.canRead() && directory.canWrite();
+    }
+
+    /**
+     * @return True, if the given file exists, is a file, and the JVM has read+write access.
+     */
+    default boolean isFilePathValid() {
+        assert isDirectoryPathValid() : "Expected valid directory path";
+        File file = getFile();
+        return file.exists() && file.isFile() && file.canRead() && file.canWrite();
     }
 }

@@ -65,27 +65,21 @@ public enum JDataType {
                 return Boolean.parseBoolean(value);
             }
             case BYTE -> {
-                Objects.requireNonNull(value);
                 return Byte.parseByte(value);
             }
             case SHORT -> {
-                Objects.requireNonNull(value);
                 return Short.parseShort(value);
             }
             case INTEGER -> {
-                Objects.requireNonNull(value);
                 return Integer.parseInt(value);
             }
             case FLOAT -> {
-                Objects.requireNonNull(value);
                 return Float.parseFloat(value);
             }
             case DOUBLE -> {
-                Objects.requireNonNull(value);
                 return Double.parseDouble(value);
             }
             case LONG -> {
-                Objects.requireNonNull(value);
                 return Long.parseLong(value);
             }
             case NULL -> {

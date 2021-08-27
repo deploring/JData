@@ -1,6 +1,7 @@
 package solar.rpg.jdata.data.stored.sql;
 
 import org.jetbrains.annotations.NotNull;
+import solar.rpg.jdata.data.stored.generic.JDataParameter;
 
 import java.sql.*;
 
@@ -175,7 +176,7 @@ public final class JJDBCDatabaseHelper {
 
         JSQLParameters updateParams = storedData.getUpdateQueryParams();
 
-        for (JSQLParameter param : updateParams)
+        for (JDataParameter param : updateParams)
             setClause.append(String.format(
                     " %1$s%2$s = :%2$s ",
                     setClause.isEmpty() ? "" : ", ",

@@ -30,6 +30,13 @@ public final class JSQLParameters implements Iterable<JDataParameter> {
     }
 
     /**
+     * @return Array of parameters.
+     */
+    public JDataParameter[] getParameters() {
+        return parameters;
+    }
+
+    /**
      * Returns true if there are 0 parameters.
      */
     public boolean isEmpty() {
