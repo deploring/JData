@@ -47,7 +47,7 @@ public abstract class JSQLStoredData implements IJStoredData {
     @Nullable
     public JDataField getField(@NotNull String fieldName) {
         return Arrays.stream(dataFields).filter(field ->
-                field.getFieldName().equals(fieldName)).findFirst().orElse(null);
+                field.fieldName().equals(fieldName)).findFirst().orElse(null);
     }
 
     /**
@@ -117,7 +117,7 @@ public abstract class JSQLStoredData implements IJStoredData {
     @NotNull
     public JDataParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues) {
         AtomicInteger primaryFieldIndex = new AtomicInteger();
-        return Arrays.stream(getPrimaryFields()).map(field -> new JDataParameter(field.getFieldName(), keyValues[primaryFieldIndex.getAndIncrement()])).toArray(JDataParameter[]::new);
+        return Arrays.stream(getPrimaryFields()).map(field -> new JDataParameter(field.fieldName(), keyValues[primaryFieldIndex.getAndIncrement()])).toArray(JDataParameter[]::new);
     }
 
     /**

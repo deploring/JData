@@ -1,81 +1,56 @@
 package solar.rpg.jdata.data.file.generic;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.generic.JDataField;
-import solar.rpg.jdata.data.variants.JDataType;
-import solar.rpg.jdata.data.variants.JTextVariant;
 
-import java.io.Serializable;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 /**
- * Represents any generic data element which has a unique name, and value(s).
- * This class can used to represent a complex / multivariate data type in a {@link IJFileStoredData} object.
- * Children are stored as a
- * Values are stored as {@link JTextVariant} objects.
+ * This interface represents an {@link IJFileNode} that acts as an element node, which can link to other nodes.
+ * Elements of this type do not necessarily store their own data, but store child nodes as data.
+ * This allows an element to form a more complex data structure consisting of other elements and text nodes.
  *
  * @author jskinner
+ * @see IJFileTextNode
  * @since 1.0.0
  */
-public interface IJFileElement {
+public interface IJFileElement extends IJFileNode {
 
     /**
-     * @return Field information about this file element.
-     */
-    @NotNull
-    JDataField getFieldInfo();
-
-    /**
-     * @return The value stored under this given element.
-     */
-    default Serializable getValue() {
-        assert !getChildrenCount() : "Expected non-root element";
-        return getValue(getFieldInfo().fieldType());
-    }
-
-    /**
-     * @return True, if this is the highest element in the file structure.
+     * @return True, if this is the root element.
      */
     boolean isRoot();
 
     /**
-     * @param dataType Type of data to convert the element value to.
-     * @return The value stored under this element, or null if this element contains child elements.
-     */
-    @Nullable
-    Serializable getValue(JDataType dataType);
-
-    /**
-     * @return True, if the value is not null.
-     */
-    boolean hasValue();
-
-    /**
-     * Throws {@code IllegalAccessException} if this element contains a value, not children.
-     *
-     * @return List of all child elements.
+     * @return All child nodes belonging to this element, as an array.
      */
     @NotNull
-    IJFileElement[] getChildren();
+    IJFileNode[] getChildren();
 
     /**
-     * @return True, if this element stores other elements as children, and not a value.
+     * @param fieldName Field name of the child node to find.
+     * @return Child node found under the given field name.
+     * @throws NoSuchElementException Child node under the given field name could not be found.
      */
-    boolean hasChildren() {
-        assert getChildren().length == 0;
+    default IJFileNode getChild(String fieldName) {
+        return Arrays.stream(getChildren()).filter(child -> child.getFieldInfo().fieldName().equals(fieldName)).findFirst().orElseThrow();
     }
 
     /**
-     * @return Array containing field information of all child fields, or null if this element contains a value.
+     * @return Array containing field metadata of all child nodes.
+     * @throws AssertionError Element is expected to have at least one child node.
      */
-    @Nullable
+    @NotNull
     default JDataField[] getChildFieldInfo() {
-        JDataField[] result = new JDataField[getChildrenCount()];
-        int i = 0;
-        for (IJFileElement child : getChildren()) {
-            result[i] = child.getFieldInfo();
-            i++;
-        }
-        return result;
+        assert hasChildren() : "Element does not have children";
+        return Arrays.stream(getChildren()).map(IJFileNode::getFieldInfo).toArray(JDataField[]::new);
+    }
+
+    /**
+     * @return True, if this element has at least one child node.
+     */
+    default boolean hasChildren() {
+        return getChildren().length > 0;
     }
 }

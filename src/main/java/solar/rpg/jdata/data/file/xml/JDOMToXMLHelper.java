@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 /**
  * {@code JDOMToXMLHelper} is a helper class that will parse an XML file into
  * {@link Node} objects to perform a logical translation of the contents into
- * a {@link JXMLElement} object.
+ * a {@link JXMLNode} object.
  *
  * @author jskinner
  * @see JXMLToDOMHelper
@@ -53,14 +53,14 @@ public class JDOMToXMLHelper {
     }*/
 
     /**
-     * Processes the XML document and produces a single {@link JXMLElement}.
-     * This resultant {@link JXMLElement} is the root, and is logically linked to all
+     * Processes the XML document and produces a single {@link JXMLNode}.
+     * This resultant {@link JXMLNode} is the root, and is logically linked to all
      * the other elements in the document. This allows logical a one-way depth-first
      * traversal of the XML document.
      *
      * @return The root (document) element, logically represented and linked to all other elements.
      */
-    public JXMLElement read() {
+    public JXMLNode read() {
         return processElement(XMLDoc.getDocumentElement());
     }
 
@@ -72,7 +72,7 @@ public class JDOMToXMLHelper {
      * @return List of {@code JXMLElement} objects that belong to the parent element.
      * @see #processElement(Node)
      */
-    private List<JXMLElement> processChildren(NodeList children) {
+    private List<JXMLNode> processChildren(NodeList children) {
         return IntStream.range(0, children.getLength()).filter(i -> children.item(i).getNodeType() == Node.ELEMENT_NODE).mapToObj(i -> processElement(children.item(i))).toList();
     }
 
@@ -84,12 +84,12 @@ public class JDOMToXMLHelper {
      * @param element XML document node to process.
      * @return Logical representation of XML document node as a {@code LinkedXMLNode}.
      */
-    private JXMLElement processElement(Node element) {
+    private JXMLNode processElement(Node element) {
         String tagName = element.getNodeName();
         Map<String, String> attributes = readAttributes(element);
-        List<JXMLElement> children = processChildren(element.getChildNodes());
+        List<JXMLNode> children = processChildren(element.getChildNodes());
         String tagValue = children.size() == 0 ? element.getTextContent() : null;
-        return new JXMLElement(element, tagValue, attributes, children);
+        return new JXMLNode(element, tagValue, attributes, children);
     }
 
     /**

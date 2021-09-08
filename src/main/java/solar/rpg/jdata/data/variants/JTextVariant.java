@@ -6,73 +6,58 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 
 /**
- * Represents a mixed data type which can be treated as multiple values as applicable,
- * but is stored as a {@code String}.
- * This can be converted easily to other primitive types under the above assumptions.
+ * Stores a {@code String} value which can be returned as any applicable data type.
  *
  * @author jskinner
+ * @see JDataType
  * @since 1.0.0
  */
 public final class JTextVariant implements Serializable {
 
     /**
-     * The serialised {@code String} representation of the variant value.
+     * The stored {@code String} value. This can be converted into different data types where applicable.
      */
     @Nullable
     private String rawValue;
 
-    /**
-     * The current {@link JDataType} of the variant;
-     */
-    @NotNull
-    private JDataType fieldType;
-
     public JTextVariant() {
         rawValue = null;
-        fieldType = JDataType.NULL;
     }
 
-    public JTextVariant(@Nullable Serializable value, @NotNull JDataType fieldType) {
+    public JTextVariant(@Nullable Serializable value) {
         this();
-        setValue(value, fieldType);
+        setValue(value);
     }
 
     /**
-     * @return True, if the serialized value is null.
+     * @return True, if the stored value is null.
      */
     public boolean isNull() {
         return rawValue == null;
     }
 
     /**
-     * Sets the variant value.
-     *
-     * @param value     The value to serialize.
-     * @param fieldType The data type of the value to serialize.
+     * @param value The value to convert to a {@code String} and store.
      */
-    public void setValue(Serializable value, JDataType fieldType) {
-        this.fieldType = fieldType;
-        rawValue = fieldType.serialize(value);
+    public void setValue(@Nullable Serializable value) {
+        rawValue = value == null ? null : JDataType.fromClass(value.getClass()).toString(value);
     }
 
     /**
-     * @return The deserialized variant value, under the current data type.
+     * @param asType Class of the given type to convert the raw value to.
+     * @param <T>    Type to convert the raw value to and return as.
+     * @return The stored value converted to the given type.
      */
-    public Serializable getValue() {
-        return fieldType.deserialize(rawValue);
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <T extends Serializable> T getValueAs(@NotNull Class<T> asType) {
+        return isNull() ? null : (T) JDataType.fromClass(asType).fromString(rawValue);
     }
 
     /**
-     * @param dataType The data type to deserialize the value to.
-     * @return The deserialized variant value, under the given data type.
+     * @return The raw string value, without any conversion.
      */
-    public Serializable getValue(JDataType dataType) {
-        return dataType.deserialize(rawValue);
-    }
-
-    /**
-     * @return Raw serialized variant value.
-     */
+    @Nullable
     public String getRawValue() {
         return rawValue;
     }
