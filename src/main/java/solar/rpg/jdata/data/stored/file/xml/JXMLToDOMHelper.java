@@ -1,4 +1,4 @@
-package solar.rpg.jdata.data.file.xml;
+package solar.rpg.jdata.data.stored.file.xml;
 
 /**
  *

@@ -2,6 +2,7 @@ package solar.rpg.jdata.data.stored.generic;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -91,7 +92,7 @@ public abstract class JStoredDataController<T extends IJStoredData> {
             boolean match = true;
 
             for (JDataParameter param : params) {
-                JDataField storedDataField = storedData.getField(param.getParameterName());
+                JAttributedField storedDataField = storedData.getField(param.getParameterName());
                 assert storedData.getField(param.getParameterName()) != null : String.format("Could not find stored data field %s", param.getParameterName());
 
 

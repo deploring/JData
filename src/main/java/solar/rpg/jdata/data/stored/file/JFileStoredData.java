@@ -1,76 +1,53 @@
 package solar.rpg.jdata.data.stored.file;
 
 import org.jetbrains.annotations.NotNull;
-import solar.rpg.jdata.data.file.generic.IJFileElement;
-import solar.rpg.jdata.data.file.generic.IJFileNode;
-import solar.rpg.jdata.data.file.generic.IJFileTextNode;
-import solar.rpg.jdata.data.schema.file.IJFileElementSchema;
 import solar.rpg.jdata.data.stored.JStoredDataState;
+import solar.rpg.jdata.data.stored.file.attribute.IJAttributable;
+import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
 import solar.rpg.jdata.data.stored.generic.IJStoredData;
-import solar.rpg.jdata.data.stored.generic.JDataField;
 
 import java.io.File;
-import java.io.Serializable;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
  * Represents a piece of complex multivariate data stored under a file path.
  * Changes in memory can be persisted into a file, or reloaded from a file as needed.
  *
- * @param <T> Specific type of {@link IJFileElement} handled by this file stored object.
  * @author jskinner
- * @see IJFileNode
  * @since 1.0.0
  */
-public abstract class JFileStoredData<T extends IJFileElement> implements IJStoredData {
+public abstract class JFileStoredData implements IJStoredData, IJAttributable {
 
-    /**
-     * File path information.
-     */
+    //TODO: Subscriber of changes?
+
+    @NotNull
     private final File directory, file;
-
-    /**
-     * File stored objects have one root element to represent the entire file structure.
-     * All defined fields are contained within the child elements, defined by the schema.
-     *
-     * @see #getSchema()
-     */
-    private final T rootElement;
-
-    /**
-     * @see JStoredDataState
-     */
+    @NotNull
     private JStoredDataState dataState;
+    @NotNull
+    private JAttributes attributes;
 
     /**
-     * @param rootElement   Root element of the stored data file.
      * @param directoryPath Path of the directory where the file will be created/stored.
      * @param fileName      Name of the file where the stored data is located.
      */
-    protected JFileStoredData(T rootElement, String directoryPath, String fileName) {
+    protected JFileStoredData(String directoryPath, String fileName) {
         this.directory = Paths.get(directoryPath).toFile();
         this.file = Paths.get(directoryPath, fileName).toFile();
-        this.rootElement = rootElement;
     }
-
-    /**
-     * @return Schema information that defines the structure of this particular {@link JFileStoredData} object.
-     */
-    public abstract IJFileElementSchema getSchema();
 
     /**
      * @return {@link File} object representing the directory path containing the file (must exist).
      */
-    public File getDirectory() {
+    public final File getDirectory() {
         return directory;
     }
 
     /**
      * @return {@link File} object representing the file path (may or may not exist).
      */
-    public File getFile() {
+    public final File getFile() {
         return file;
     }
 
@@ -98,43 +75,10 @@ public abstract class JFileStoredData<T extends IJFileElement> implements IJStor
         return path.exists() && pathTypeCheck.test(path) && path.canRead() && path.canWrite();
     }
 
-    /**
-     * @return Array containing field information for all nodes belonging to the root element.
-     */
     @NotNull
     @Override
-    public JDataField[] getFields() {
-        return Objects.requireNonNull(rootElement.getChildFieldInfo());
-    }
-
-    /**
-     * @param fieldName Name that uniquely identifies the name of the top-level element to get a value from.
-     * @return Value of the given element under the given field name.
-     */
-    @NotNull
-    @Override
-    public Serializable getValue(String fieldName) {
-        return checkTextNodeValue(rootElement.getChild(fieldName));
-    }
-
-    /**
-     * @param fieldIndex Index of the top-level text node to get the associated value from.
-     * @return Value of the top-level element found at the given index.
-     */
-    @NotNull
-    @Override
-    public Serializable getValue(int fieldIndex) {
-        return checkTextNodeValue(rootElement.getChildren()[fieldIndex]);
-    }
-
-    /**
-     * @param node The node to retrieve the value from. This must be an {@link IJFileTextNode}.
-     * @return The value stored by the given node, under the assumption that is an {@link IJFileTextNode}.
-     * @throws AssertionError Given node was not an {@link IJFileTextNode}.
-     */
-    private Serializable checkTextNodeValue(IJFileNode node) {
-        assert node instanceof IJFileTextNode : "Expected file text node";
-        return ((IJFileTextNode) node).getValue();
+    public JAttributes getAttributes() {
+        return attributes;
     }
 
     @NotNull

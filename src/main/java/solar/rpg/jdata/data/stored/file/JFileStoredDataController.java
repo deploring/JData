@@ -1,10 +1,9 @@
 package solar.rpg.jdata.data.stored.file;
 
 import org.jetbrains.annotations.NotNull;
-import solar.rpg.jdata.data.file.generic.IJFileElement;
 import solar.rpg.jdata.data.stored.generic.JStoredDataController;
 
-public class JFileStoredDataController<T extends JFileStoredData<E>, E extends IJFileElement> extends JStoredDataController<T> {
+public class JFileStoredDataController extends JStoredDataController<JFileStoredData> {
 
     @Override
     public void commit() {
@@ -18,7 +17,7 @@ public class JFileStoredDataController<T extends JFileStoredData<E>, E extends I
 
     @NotNull
     @Override
-    public T getStoredData(Class<T> fileStoredDataClass, String[] keyValues) {
+    public JFileStoredData getStoredData(Class<JFileStoredData> fileStoredDataClass, String[] keyValues) {
         return null;
     }
 }

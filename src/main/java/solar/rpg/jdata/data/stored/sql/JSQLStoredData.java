@@ -3,9 +3,8 @@ package solar.rpg.jdata.data.stored.sql;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.generic.IJStoredData;
-import solar.rpg.jdata.data.stored.generic.JDataField;
+import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 import solar.rpg.jdata.data.stored.generic.JDataParameter;
-import solar.rpg.jdata.data.variants.JTextVariant;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,35 +27,35 @@ public abstract class JSQLStoredData implements IJStoredData {
     /**
      * Table columns- defines the structure of this DB record.
      */
-    private final JDataField[] dataFields;
+    private final JAttributedField[] dataFields;
 
     /**
      * @param database   Database connection.
      * @param dataFields Database column info, provided from the child class.
      */
-    protected JSQLStoredData(JJDBCDatabaseHelper database, JDataField[] dataFields) {
+    protected JSQLStoredData(JJDBCDatabaseHelper database, JAttributedField[] dataFields) {
         this.database = database;
         this.dataFields = dataFields;
     }
 
     /**
      * @param fieldName Name that uniquely identifies this field.
-     * @return {@link JDataField} instance with the given field name.
+     * @return {@link JAttributedField} instance with the given field name.
      */
     @Override
     @Nullable
-    public JDataField getField(@NotNull String fieldName) {
+    public JAttributedField getField(@NotNull String fieldName) {
         return Arrays.stream(dataFields).filter(field ->
                 field.fieldName().equals(fieldName)).findFirst().orElse(null);
     }
 
     /**
      * @param fieldIndex Index of the field.
-     * @return {@link JDataField} instance at the given index.
+     * @return {@link JAttributedField} instance at the given index.
      */
     @Override
     @NotNull
-    public JDataField getField(int fieldIndex) {
+    public JAttributedField getField(int fieldIndex) {
         return dataFields[fieldIndex];
     }
 
@@ -102,7 +101,7 @@ public abstract class JSQLStoredData implements IJStoredData {
     /**
      * Use this to reload an existing record from the database.
      *
-     * @return An array containing all primary {@link JDataField} values represented as {@link JDataParameter} objects.
+     * @return An array containing all primary {@link JAttributedField} values represented as {@link JDataParameter} objects.
      */
     @NotNull
     public JDataParameter[] getPrimaryFieldValuesAsParams() {
