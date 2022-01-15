@@ -1,9 +1,9 @@
 package solar.rpg.jdata.data.stored;
 
-import solar.rpg.jdata.data.stored.generic.IJStoredData;
+import solar.rpg.jdata.data.stored.generic.JStoredData;
 
 /**
- * Denotes the different states that the data of a {@link IJStoredData} object can be in.
+ * Denotes the different states that the data of a {@link JStoredData} object can be in.
  *
  * @author jskinner
  * @since 1.0.0
@@ -24,26 +24,31 @@ public enum JStoredDataState {
     /**
      * The stored object held an existing piece of data, whose record(s) are yet to be deleted through a commit.
      */
-    REMOVED(true, true);
+    REMOVED(true, true),
+    /**
+     * Initial state. The stored data object should not be used until it is initialised; this can either be as a new
+     * instance or from existing stored data.
+     */
+    UNITIALISED(false, false);
 
-    private final boolean requiresCommit, canReload;
+    private final boolean requiresCommit, canRefresh;
 
-    JStoredDataState(boolean requiresCommit, boolean canReload) {
+    JStoredDataState(boolean requiresCommit, boolean canRefresh) {
         this.requiresCommit = requiresCommit;
-        this.canReload = canReload;
+        this.canRefresh = canRefresh;
     }
 
     /**
-     * @return True, if there are changes to the {@link IJStoredData} object that will be lost if not committed.
+     * @return True, if there are changes to a {@link JStoredData} object that will be lost if not committed.
      */
-    public boolean isRequiresCommit() {
+    public boolean canCommit() {
         return requiresCommit;
     }
 
     /**
-     * @return True, if the {@link IJStoredData} object is allowed to reload its values in the given state.
+     * @return True, if a {@link JStoredData} object is allowed to refresh in the given state.
      */
-    public boolean canReload() {
-        return canReload;
+    public boolean canRefresh() {
+        return canRefresh;
     }
 }

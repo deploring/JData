@@ -1,109 +1,97 @@
 package solar.rpg.jdata.data.stored.file;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.JStoredDataState;
 import solar.rpg.jdata.data.stored.file.attribute.IJAttributable;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
-import solar.rpg.jdata.data.stored.generic.IJStoredData;
+import solar.rpg.jdata.data.stored.generic.JStoredData;
 
 import java.io.File;
-import java.nio.file.Paths;
-import java.util.function.Predicate;
+import java.nio.file.Path;
 
 /**
- * Represents a piece of complex multivariate data stored under a file path.
- * Changes in memory can be persisted into a file, or reloaded from a file as needed.
+ * {@code JFileStoredData} is a sub-implementation of {@link JStoredData} where the underlying storage medium is based
+ * around files. Each instance represents stored data saved in a file, based on the structure of that instance's class.
  *
  * @author jskinner
  * @since 1.0.0
  */
-public abstract class JFileStoredData implements IJStoredData, IJAttributable {
+public abstract class JFileStoredData extends JStoredData implements IJAttributable {
 
-    //TODO: Subscriber of changes?
+    //TODO: Subscriber of changes? Detect changes in some way
 
-    @NotNull
-    private final File directory, file;
-    @NotNull
-    private JStoredDataState dataState;
-    @NotNull
+    @Nullable
+    private Path filePath;
+    @Nullable
     private JAttributes attributes;
 
     /**
-     * @param directoryPath Path of the directory where the file will be created/stored.
-     * @param fileName      Name of the file where the stored data is located.
+     * Initialises the stored data object using the supplied file path. If the file does not exist, only the structure
+     * of nested elements is created and any data fields are initialised as null.
+     *
+     * @param filePath The file path of the stored data (or where it will be created).
      */
-    protected JFileStoredData(String directoryPath, String fileName) {
-        this.directory = Paths.get(directoryPath).toFile();
-        this.file = Paths.get(directoryPath, fileName).toFile();
+    public final void initialise(@NotNull Path filePath) {
+        if (getStoredDataState() != JStoredDataState.UNITIALISED)
+            throw new IllegalStateException("Already initialised");
+        this.filePath = filePath;
+
+        File file = filePath.toFile();
+
+        if (file.exists()) {
+            throw new UnsupportedOperationException("");
+        } else initialiseNew();
+
+        /*String fileExtension = FilenameUtils.getExtension(file.getName()).toLowerCase();
+        switch (fileExtension) {
+            case "xml":
+                // do something
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Unsupported file extension .%s", fileExtension));
+        }*/
+    }
+
+    private void initialiseNew() {
+        setStoredDataState(JStoredDataState.CREATED);
+        JFileElementFactory fileElementFactory = new JFileElementFactory();
+        attributes = fileElementFactory.newAttributes(this.getClass());
+        fileElementFactory.initialiseDataFields(this);
+    }
+
+    private void initialiseExisting(@NotNull Path filePath) {
+
     }
 
     /**
-     * @return {@link File} object representing the directory path containing the file (must exist).
+     * @return {@link Path} object representing the file system path to the stored data file.
      */
-    public final File getDirectory() {
-        return directory;
-    }
-
-    /**
-     * @return {@link File} object representing the file path (may or may not exist).
-     */
-    public final File getFile() {
-        return file;
-    }
-
-    /**
-     * @return True, if the given directory path exists, is a directory, and the JVM has read+write access.
-     */
-    public boolean isDirectoryPathValid() {
-        return isPathValid(getDirectory(), File::isDirectory);
-    }
-
-    /**
-     * @return True, if the given file exists, is a file, and the JVM has read+write access.
-     */
-    public boolean isFilePathValid() {
-        assert isDirectoryPathValid() : "Expected valid directory path";
-        return isPathValid(getFile(), File::isFile);
-    }
-
-    /**
-     * @param path          File path to validate.
-     * @param pathTypeCheck Predicate to check the path type, e.g. file or directory.
-     * @return True, if the file path exists, is the correct path type, and the JVM has read+write access.
-     */
-    private boolean isPathValid(File path, Predicate<File> pathTypeCheck) {
-        return path.exists() && pathTypeCheck.test(path) && path.canRead() && path.canWrite();
+    @NotNull
+    public final Path getFilePath() {
+        if (filePath == null) throw new IllegalStateException("Not initialised");
+        return filePath;
     }
 
     @NotNull
     @Override
-    public JAttributes getAttributes() {
+    public final JAttributes getAttributes() {
+        if (attributes == null) throw new IllegalStateException("Not initialised");
         return attributes;
     }
 
-    @NotNull
     @Override
-    public JStoredDataState getStoredDataState() {
-        return dataState;
-    }
-
-    @Override
-    public void setStoredDataState(JStoredDataState dataState) {
-        this.dataState = dataState;
-    }
-
-    @Override
-    public void commit() {
+    public final void onCommit() {
         //TODO: Commit logic.
     }
 
     @Override
-    public void refresh() {
+    public final void onRefresh() {
         //TODO: Refresh logic.
     }
 
     @Override
-    public void delete() {
+    public final void onDelete() {
         onDelete();
         //TODO: Deletion logic.
     }

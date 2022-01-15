@@ -4,9 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Stores attribute information for a concrete implementation of the {@link IJAttributable} interface.
@@ -25,10 +25,10 @@ public class JAttributes {
     /**
      * Only certain primitive types can be stored as attribute values.
      */
-    private static final List<? extends Serializable> ALLOWED_TYPES = List.of(new Class[]{
-            String.class,
-            Character.class,
-            Number.class
+    private static final List<Class<?>> ALLOWED_TYPES = List.of(new Class<?>[]{
+        String.class,
+        Character.class,
+        Number.class
     });
 
     @NotNull
@@ -49,31 +49,35 @@ public class JAttributes {
      * @see #ALLOWED_TYPES
      */
     public JAttributes(
-            @NotNull List<String> attributeNames,
-            @NotNull List<Serializable> attributeValues,
-            @NotNull List<Class<? extends Serializable>> attributeTypes) {
+        @NotNull List<String> attributeNames,
+        @NotNull List<Serializable> attributeValues,
+        @NotNull List<Class<? extends Serializable>> attributeTypes) {
         if (attributeNames.size() != attributeValues.size() || attributeNames.size() != attributeTypes.size())
             throw new IllegalArgumentException("Amount of attribute names, values, and types must match");
         this.attributeNames = attributeNames;
         this.attributeValues = attributeValues;
         this.attributeTypes = attributeTypes;
 
-        attributeValues.forEach(value -> ALLOWED_TYPES.stream().filter(
-                attributeType -> attributeType.getClass().isAssignableFrom(value.getClass())
-        ).findAny().orElseThrow(() -> new IllegalArgumentException("Illegal type provided")));
+        attributeTypes.forEach(attributeType -> ALLOWED_TYPES.stream()
+            .filter(allowedType -> allowedType.isAssignableFrom(attributeType))
+            .findFirst().orElseThrow(() -> new IllegalArgumentException("Illegal typr provided")));
+
+        IntStream.range(0, attributeValues.size()).forEach(i -> validateValueType(attributeValues.get(i),
+                                                                                  attributeTypes.get(i)));
     }
+
     /**
      * Constructs a new {@code JAttributes} instance with all attributes instantiated as null.
      *
-     * @param attributeNames  Names of all attributes.
-     * @param attributeTypes  Types of all attribute values.
+     * @param attributeNames Names of all attributes.
+     * @param attributeTypes Types of all attribute values.
      * @throws IllegalArgumentException Amount of attribute names and values must match.
      * @throws IllegalArgumentException One of the given value types is not allowed.
      * @see #ALLOWED_TYPES
      */
     public JAttributes(
-            @NotNull List<String> attributeNames,
-            @NotNull List<Class<? extends Serializable>> attributeTypes) {
+        @NotNull List<String> attributeNames,
+        @NotNull List<Class<? extends Serializable>> attributeTypes) {
         this(attributeNames, Arrays.asList(new Serializable[attributeNames.size()]), attributeTypes);
     }
 
@@ -105,24 +109,36 @@ public class JAttributes {
         int attributeIndex = attributeNames.indexOf(attributeName);
         if (attributeIndex == -1)
             throw new IllegalArgumentException(String.format("Attribute %s does not exist", attributeName));
-        if (value != null) {
-            Class<? extends Serializable> actualClass = value.getClass();
-            Class<? extends Serializable> expectedClass = attributeTypes.get(attributeIndex);
-            if (!actualClass.equals(expectedClass))
-                throw new IllegalArgumentException(String.format("Value type %s does not match actual type %s",
-                                                                 actualClass.getSimpleName(),
-                                                                 expectedClass.getSimpleName()));
-        }
+
+        validateValueType(value, attributeTypes.get(attributeIndex));
         attributeValues.set(attributeIndex, value);
     }
 
     /**
      * @param attributeName The name of the attribute.
-     * @param <T>           The expected type for the attribute <strong>(important!)</strong>.
+     * @param <V>           The expected type for the attribute value <strong>(important!)</strong>.
      * @return The value of the attribute, returned as the given type.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Serializable> T get(@NotNull String attributeName) {
-        return (T) attributeValues.get(attributeNames.indexOf(attributeName));
+    public <V extends Serializable> V get(@NotNull String attributeName) {
+        return (V) attributeValues.get(attributeNames.indexOf(attributeName));
+    }
+
+    /**
+     * Checks that an attribute's value is of the given type, otherwise an {@code IllegalArgumentException} is thrown.
+     *
+     * @param value         The value to check.
+     * @param expectedClass The type that the value is expected to have.
+     * @param <V>           The actual type of the value.
+     * @throws IllegalArgumentException Value type does not match expected type.
+     */
+    private <V> void validateValueType(@Nullable V value, @NotNull Class<?> expectedClass) {
+        if (value == null) return;
+
+        Class<?> actualClass = value.getClass();
+        if (!expectedClass.isAssignableFrom(actualClass))
+            throw new IllegalArgumentException(String.format("Value type %s does not match expected type %s",
+                                                             actualClass.getSimpleName(),
+                                                             expectedClass));
     }
 }

@@ -1,9 +1,6 @@
 package solar.rpg.jdata.data.stored.sql;
 
-import org.jetbrains.annotations.NotNull;
 import solar.rpg.jdata.data.stored.generic.JStoredDataController;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Implementation of a {@link JStoredDataController} that uses an SQL database.
@@ -20,7 +17,7 @@ public final class JJDBCStoredDataController extends JStoredDataController<JSQLS
     @Override
     public void commit() {
         for (JSQLStoredData storedData : storedDataCache)
-            if (storedData.canCommit()) storedData.commit();
+            if (storedData.getStoredDataState().canCommit()) storedData.commit();
     }
 
     /**
@@ -29,6 +26,6 @@ public final class JJDBCStoredDataController extends JStoredDataController<JSQLS
     @Override
     public void clear() {
         for (JSQLStoredData storedData : storedDataCache)
-            storedData.refresh();
+            storedData.reload();
     }
 }

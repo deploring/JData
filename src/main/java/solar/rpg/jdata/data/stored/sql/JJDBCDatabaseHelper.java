@@ -1,7 +1,6 @@
 package solar.rpg.jdata.data.stored.sql;
 
 import org.jetbrains.annotations.NotNull;
-import solar.rpg.jdata.data.stored.generic.JDataParameter;
 
 import java.sql.*;
 
@@ -28,7 +27,8 @@ public final class JJDBCDatabaseHelper {
         super();
         this.USERNAME = username;
         this.PASSWORD = password;
-        this.URL = String.format("jdbc:mysql://%s:%s/", hostname, port) + "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B11";
+        this.URL = String.format("jdbc:mysql://%s:%s/", hostname, port) +
+                   "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B11";
         this.DATABASE = database;
 
         open();
@@ -126,7 +126,8 @@ public final class JJDBCDatabaseHelper {
                     paramIndex++;
                 }
 
-            assert statement.getParameterMetaData().getParameterCount() == paramIndex : "Parameter count mismatch between query and provided params";
+            assert statement.getParameterMetaData().getParameterCount() ==
+                   paramIndex : "Parameter count mismatch between query and provided params";
 
             statement.executeUpdate();
             statement.close();
@@ -147,9 +148,9 @@ public final class JJDBCDatabaseHelper {
 
         try {
             PreparedStatement select = prepare(String.format(
-                    " SELECT * FROM %1$s WHERE %2$s",
-                    tableName,
-                    primaryKeyParams.buildWhereClause()));
+                " SELECT * FROM %1$s WHERE %2$s",
+                tableName,
+                primaryKeyParams.buildWhereClause()));
 
             primaryKeyParams.populateQueryParameters(select);
 
@@ -166,7 +167,7 @@ public final class JJDBCDatabaseHelper {
      * @param storedData Stored object to commit.
      */
     public void commitStoredData(@NotNull JSQLStoredData storedData) {
-        assert storedData.canCommit() : "The given stored data object is not ready for committing";
+        /*assert storedData.canCommit() : "The given stored data object is not ready for committing";
 
         StringBuilder updateQuery = new StringBuilder(String.format(
                 " UPDATE %s SET ",
@@ -187,6 +188,6 @@ public final class JJDBCDatabaseHelper {
         updateQuery.append(setClause);
         updateQuery.append(String.format(" WHERE %s ", primaryKeyParams.buildWhereClause()));
 
-        runUpdateSQL(updateQuery.toString(), updateParams, primaryKeyParams);
+        runUpdateSQL(updateQuery.toString(), updateParams, primaryKeyParams);*/
     }
 }

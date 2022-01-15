@@ -59,9 +59,9 @@ public final class JSQLParameters implements Iterable<JDataParameter> {
 
         for (JDataParameter parameter : parameters)
             whereClause.append(String.format(
-                    " %1$s%2$s = :%2$s ",
-                    whereClause.isEmpty() ? "" : " AND ",
-                    parameter.getParameterName()));
+                " %1$s%2$s = :%2$s ",
+                whereClause.isEmpty() ? "" : " AND ",
+                parameter.getParameterName()));
 
         return whereClause.toString();
     }

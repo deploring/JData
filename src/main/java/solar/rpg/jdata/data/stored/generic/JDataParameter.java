@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * Represents a single parameter to build with and pass to data queries.
- * This is used for manipulating and querying {@link IJStoredData} objects.
+ * This is used for manipulating and querying {@link JStoredData} objects.
  *
  * @author jskinner
  * @since 1.0.0

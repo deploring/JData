@@ -5,8 +5,8 @@ import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.JUtils;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  *
  * @param <E> The type of element that is ma
  */
-public final class JFileElementGroup<E extends JFileElement> extends JFileElement {
+public final class JFileElementGroup<E extends JFileElement> extends JFileElement implements Iterable<E> {
 
     @NotNull
     private final List<E> children;
@@ -43,18 +43,17 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
         this.children = new ArrayList<>();
     }
 
-    //TODO: Is this OK??
+    /**
+     * Creates a new child element which is placed into the list of child elements and returned.
+     * Any nested elements inside the child element are also created.
+     *
+     * @return The new child element.
+     */
     @NotNull
     public E newChild() {
-        Class<E> elementClass = JUtils.getGenericType(this.getClass());
-
-        try {
-            E newElement = elementClass.getDeclaredConstructor().newInstance();
-            children.add(newElement);
-            return newElement;
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new IllegalStateException(String.format("Unable to create new child element: %s", e.getMessage()));
-        }
+        E newElement = new JFileElementFactory().newElement(JUtils.getGenericType(this.getClass()));
+        children.add(newElement);
+        return newElement;
     }
 
     /**
@@ -122,5 +121,11 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
 
     public void clear() {
         children.clear();
+    }
+
+    @NotNull
+    @Override
+    public Iterator<E> iterator() {
+        return children.iterator();
     }
 }

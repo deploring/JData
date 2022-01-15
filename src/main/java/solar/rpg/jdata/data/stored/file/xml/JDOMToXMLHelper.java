@@ -1,22 +1,6 @@
 package solar.rpg.jdata.data.stored.file.xml;
 
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
-import solar.rpg.jdata.data.stored.file.IJFileElement;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * {@code JDOMToXMLHelper} is a helper class that will parse an XML file into {@link Node} objects to perform a logical
@@ -37,7 +21,7 @@ public class JDOMToXMLHelper {
         } catch (Exception e) {
             throw new RuntimeException("Unable to read XML file: " + e.getMessage());
         }
-    }*/
+    }
 
     /**
      * Processes the XML document and produces a single {@link IJFileElement} which represents the root element. It is
@@ -45,7 +29,7 @@ public class JDOMToXMLHelper {
      * traversal of the XML document.
      *
      * @return The root (document) element, linked to all other child elements.
-     */
+     *
     public IJFileElement read(@NotNull Path filePath) throws IOException {
         File theFile = filePath.toFile();
         if (!theFile.exists()) throw new IOException("File does not exist: " + filePath);
@@ -67,7 +51,7 @@ public class JDOMToXMLHelper {
      *
      * @param element Element that is currently being read.
      * @return Attributes represented by a {@code Store}.
-     */
+     *
     private Map<String, String> readAttributes(Node element) {
         Map<String, String> result = new TreeMap<>();
         if (element.getAttributes() != null)
@@ -92,7 +76,7 @@ public class JDOMToXMLHelper {
      *
      * @param element XML document node to process.
      * @return Logical representation of XML document node as a {@code LinkedXMLNode}.
-     */
+     *
     private JXMLNode processNode(Node node) {
         String nodeName = node.getNodeName();
         Map<String, String> attributes = readAttributes(node);
@@ -109,5 +93,5 @@ public class JDOMToXMLHelper {
                 throw new UnsupportedOperationException(String.format("Unsupported node type %d", node.getNodeType()));
         }
         return new JXMLNode(element, tagValue, attributes, children);
-    }
+    }*/
 }

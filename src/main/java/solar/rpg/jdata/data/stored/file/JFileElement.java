@@ -14,7 +14,7 @@ import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
  * @author jskinner
  * @since 1.0.0
  */
-public class JFileElement implements IJAttributable {
+public abstract class JFileElement implements IJAttributable {
 
     @NotNull
     private final JAttributes attributes;

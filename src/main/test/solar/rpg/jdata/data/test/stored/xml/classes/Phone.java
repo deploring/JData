@@ -1,8 +1,8 @@
 package solar.rpg.jdata.data.test.stored.xml.classes;
 
 import org.jetbrains.annotations.Nullable;
-import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 import solar.rpg.jdata.data.stored.file.JFileElement;
+import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 import solar.rpg.jdata.data.stored.file.attribute.JHasAttributes;
 
 @JHasAttributes(names = "phoneType", types = Phone.PhoneType.class)

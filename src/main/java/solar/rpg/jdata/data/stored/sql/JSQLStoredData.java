@@ -1,13 +1,8 @@
 package solar.rpg.jdata.data.stored.sql;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import solar.rpg.jdata.data.stored.generic.IJStoredData;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 import solar.rpg.jdata.data.stored.generic.JDataParameter;
-
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
+import solar.rpg.jdata.data.stored.generic.JStoredData;
 
 /**
  * Represents a record stored in a database table, retrieved using SQL.
@@ -17,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author jskinner
  * @since 1.0.0
  */
-public abstract class JSQLStoredData implements IJStoredData {
+public abstract class JSQLStoredData extends JStoredData {
 
     /**
      * Retains an instance of a {@link JJDBCDatabaseHelper} to retrieve data and push uncommitted changes.
@@ -38,10 +33,11 @@ public abstract class JSQLStoredData implements IJStoredData {
         this.dataFields = dataFields;
     }
 
+    /*
     /**
      * @param fieldName Name that uniquely identifies this field.
      * @return {@link JAttributedField} instance with the given field name.
-     */
+     *
     @Override
     @Nullable
     public JAttributedField getField(@NotNull String fieldName) {
@@ -52,7 +48,7 @@ public abstract class JSQLStoredData implements IJStoredData {
     /**
      * @param fieldIndex Index of the field.
      * @return {@link JAttributedField} instance at the given index.
-     */
+     *
     @Override
     @NotNull
     public JAttributedField getField(int fieldIndex) {
@@ -62,26 +58,22 @@ public abstract class JSQLStoredData implements IJStoredData {
     /**
      * @param valueIndex Index of the value to retrieve.
      * @return The value at the given index, as a {@link JTextVariant}.
-     */
+     *
     @NotNull
-    public abstract JTextVariant getValue(int valueIndex);
+    public abstract JTextVariant getValue(int valueIndex);*/
 
-    /**
-     * Refreshes the stored data object's field values using the latest ones in the database.
-     * This will overwrite any uncommitted data, and requires the object to be initialised.
-     */
     @Override
-    public void refresh() {
-        reload(new JSQLParameters(getPrimaryFieldValuesAsParams()));
+    public void onRefresh() {
+        //reload(new JSQLParameters(getPrimaryFieldValuesAsParams()));
     }
 
     @Override
-    public void commit() {
+    public void onCommit() {
         database.commitStoredData(this);
     }
 
     /**
-     * Loads all field values from the database under the 
+     * Loads all field values from the database under the
      *
      * @param keyValues
      */
@@ -98,11 +90,12 @@ public abstract class JSQLStoredData implements IJStoredData {
     private void reload(JSQLParameters keyValues) {
     }
 
+    /*
     /**
      * Use this to reload an existing record from the database.
      *
      * @return An array containing all primary {@link JAttributedField} values represented as {@link JDataParameter} objects.
-     */
+     *
     @NotNull
     public JDataParameter[] getPrimaryFieldValuesAsParams() {
         return Arrays.stream(getPrimaryFields()).map(this::getFieldValueAsParameter).toArray(JDataParameter[]::new);
@@ -112,7 +105,7 @@ public abstract class JSQLStoredData implements IJStoredData {
      * @param keyValues The primary key values for each parameter.
      * @return An array of {@link JDataParameter} objects containing each primary field, along with provided
      * search values. This can be used for record searches in the stored data object.
-     */
+     *
     @NotNull
     public JDataParameter[] getPrimaryFieldSearchParams(@NotNull String[] keyValues) {
         AtomicInteger primaryFieldIndex = new AtomicInteger();
@@ -121,9 +114,9 @@ public abstract class JSQLStoredData implements IJStoredData {
 
     /**
      * @return The table name where this particular stored data is located.
-     */
+     *
     @NotNull
     public String getTableName() {
         return getClass().getSimpleName().substring(1);
-    }
+    }*/
 }
