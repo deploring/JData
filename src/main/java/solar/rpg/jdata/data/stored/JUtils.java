@@ -6,8 +6,22 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public final class JUtils {
+
+    public static <T> Collector<T, ?, T> singletonCollector()
+    {
+        return Collectors.collectingAndThen(
+            Collectors.toList(),
+            list -> {
+                if (list.size() != 1)
+                    throw new IllegalStateException("Expected single result");
+                return list.get(0);
+            }
+        );
+    }
 
     /**
      * Attempts to convert a wildcard class into a given target class.
@@ -19,10 +33,13 @@ public final class JUtils {
      */
     @SuppressWarnings("unchecked")
     @NotNull
-    public static <T> Class<T> resolveClass(@NotNull Class<T> targetClass, @NotNull Class<?> wildcardClass) {
+    public static <T> Class<T> resolveClass(@NotNull Class<T> targetClass, @NotNull Class<?> wildcardClass)
+    {
         if (!targetClass.isAssignableFrom(wildcardClass))
-            throw new IllegalArgumentException(String.format("Provided class does not inherit from %s",
-                                                             targetClass.getSimpleName()));
+            throw new IllegalArgumentException(String.format(
+                "Provided class does not inherit from %s",
+                targetClass.getSimpleName()
+            ));
 
         return (Class<T>) wildcardClass;
     }
@@ -31,12 +48,14 @@ public final class JUtils {
      * Retrieves the generic object type parameter at runtime.
      *
      * @param classWithGenericType The class to retrieve the type parameter from.
-     * @param <T>                  The expected type of parameter. <em>Warning: This is unchecked and will not throw compile errors.</em>
+     * @param <T>                  The expected type of parameter. <em>Warning: This is unchecked and will not throw
+     *                             compile errors.</em>
      * @return The class of the type parameter.
      */
     @SuppressWarnings("unchecked")
     @NotNull
-    public static <T> Class<T> getGenericType(@NotNull Class<?> classWithGenericType) {
+    public static <T> Class<T> getGenericType(@NotNull Class<?> classWithGenericType)
+    {
         return (Class<T>) ((ParameterizedType) classWithGenericType.getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
@@ -50,7 +69,8 @@ public final class JUtils {
      * @throws IllegalArgumentException Field is not private.
      * @throws IllegalArgumentException Unable to set field on object.
      */
-    public static void writePrivateField(@NotNull Object instance, @NotNull Field field, @Nullable Object value) {
+    public static void writePrivateField(@NotNull Object instance, @NotNull Field field, @Nullable Object value)
+    {
         if (value != null && !field.getType().isAssignableFrom(value.getClass()))
             throw new IllegalArgumentException("Field type and value type do not match");
         if (!Modifier.isPrivate(field.getModifiers()))

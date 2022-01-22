@@ -5,12 +5,14 @@ import solar.rpg.jdata.data.stored.generic.JStoredDataController;
 public class JFileStoredDataController extends JStoredDataController<JFileStoredData> {
 
     @Override
-    public void commit() {
+    public void commit()
+    {
 
     }
 
     @Override
-    public void clear() {
+    public void clear()
+    {
 
     }
 }

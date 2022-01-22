@@ -9,11 +9,15 @@ import java.util.UUID;
 public class JXMLStoredDataTests {
 
     @Test
-    public void FileStoredDataTests() {
+    public void FileStoredDataTests()
+    {
         Identity identity = new Identity();
         identity.initialise(Paths.get("/Users/Joshua/Desktop/test.xml"));
 
         identity.getUuid();
         identity.setUuid(UUID.randomUUID());
+
+        Identity identity2 = new Identity();
+        identity2.initialise(Paths.get("/Users/Joshua/Desktop/identity.xml"));
     }
 }

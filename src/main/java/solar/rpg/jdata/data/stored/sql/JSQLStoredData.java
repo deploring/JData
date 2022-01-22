@@ -5,9 +5,8 @@ import solar.rpg.jdata.data.stored.generic.JDataParameter;
 import solar.rpg.jdata.data.stored.generic.JStoredData;
 
 /**
- * Represents a record stored in a database table, retrieved using SQL.
- * This data object can be used to retrieve the latest changes from the
- * database as well as pushing in-memory changes back to the database.
+ * Represents a record stored in a database table, retrieved using SQL. This data object can be used to retrieve the
+ * latest changes from the database as well as pushing in-memory changes back to the database.
  *
  * @author jskinner
  * @since 1.0.0
@@ -28,7 +27,8 @@ public abstract class JSQLStoredData extends JStoredData {
      * @param database   Database connection.
      * @param dataFields Database column info, provided from the child class.
      */
-    protected JSQLStoredData(JJDBCDatabaseHelper database, JAttributedField[] dataFields) {
+    protected JSQLStoredData(JJDBCDatabaseHelper database, JAttributedField[] dataFields)
+    {
         this.database = database;
         this.dataFields = dataFields;
     }
@@ -63,12 +63,14 @@ public abstract class JSQLStoredData extends JStoredData {
     public abstract JTextVariant getValue(int valueIndex);*/
 
     @Override
-    public void onRefresh() {
+    public void onRefresh()
+    {
         //reload(new JSQLParameters(getPrimaryFieldValuesAsParams()));
     }
 
     @Override
-    public void onCommit() {
+    public void onCommit()
+    {
         database.commitStoredData(this);
     }
 
@@ -77,7 +79,8 @@ public abstract class JSQLStoredData extends JStoredData {
      *
      * @param keyValues
      */
-    public void load(JDataParameter[] keyValues) {
+    public void load(JDataParameter[] keyValues)
+    {
         reload(new JSQLParameters(keyValues));
     }
 
@@ -87,7 +90,8 @@ public abstract class JSQLStoredData extends JStoredData {
      *
      * @param keyValues Primary key search parameters (to load the correct, unique record values).
      */
-    private void reload(JSQLParameters keyValues) {
+    private void reload(JSQLParameters keyValues)
+    {
     }
 
     /*

@@ -1,7 +1,9 @@
-package solar.rpg.jdata.data.stored.file;
+package solar.rpg.jdata.data.stored.file.factory;
 
 import org.jetbrains.annotations.NotNull;
 import solar.rpg.jdata.data.stored.JUtils;
+import solar.rpg.jdata.data.stored.file.JFileElement;
+import solar.rpg.jdata.data.stored.file.JFileElementGroup;
 import solar.rpg.jdata.data.stored.file.attribute.IJAttributable;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
@@ -12,57 +14,77 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
- * This factory object is used for instantiating new instances of file elements and stored data. Any nested element
+ * This factory class is used in the process of instantiating new file elements and stored data. Any nested element
  * fields will be created and instantiated automatically. All declared fields in all instantiated elements will also be
  * instantiated as null by default, except primitive numeric fields which are initialised as 0.
  *
  * @author jskinner
  * @since 1.0.0
  */
-public final class JFileElementFactory {
+public class JNewFileElementFactory {
 
     /**
-     * Creates a new {@link JAttributes} object associated with the given attributable object. Each attribute is
+     * Creates a new {@link JAttributes} object associated with the given attributable object. Each attribute value is
      * initialised as null. If the attributable object is not annotated with {@link JHasAttributes}, an empty object is
      * returned instead.
      *
      * @param attributable The type of attributable object.
      * @return Attributes object (<em>empty if N/A</em>).
      * @throws IllegalArgumentException Provided class does not implement {@link IJAttributable}.
+     * @throws IllegalArgumentException Number of attribute names and types do not match.
      */
     @NotNull
-    public JAttributes newAttributes(@NotNull Class<?> attributable) {
+    public JAttributes createAttributes(@NotNull Class<?> attributable)
+    {
         if (!IJAttributable.class.isAssignableFrom(attributable))
             throw new IllegalArgumentException("Provided class is not attributable");
         if (!attributable.isAnnotationPresent(JHasAttributes.class)) return new JAttributes();
 
         JHasAttributes attributes = attributable.getAnnotation(JHasAttributes.class);
+
+        if (attributes.names().length != attributes.types().length)
+            throw new IllegalArgumentException("Number of attribute names and types do not match");
+
         return new JAttributes(List.of(attributes.names()), List.of(attributes.types()));
     }
 
     /**
-     * Initialises all data fields as null for a given file element or stored data. Any nested elements are also created
-     * and have their data fields initialised to null as well.
+     * Initialises all data fields for a given file element or stored data. Any nested elements are also created and
+     * have their data fields initialised as well.
      *
      * @param dataFieldsObject The object with data fields to initialise.
-     * @param <T>              The type of object with data fields.
+     * @throws IllegalArgumentException Class cannot contain itself as a data field.
      */
-    public <T> void initialiseDataFields(T dataFieldsObject) {
+    public void initialiseDataFields(@NotNull Object dataFieldsObject)
+    {
         for (Field field : dataFieldsObject.getClass().getDeclaredFields()) {
             Class<?> fieldType = field.getType();
+
+            if (fieldType.isAssignableFrom(dataFieldsObject.getClass()))
+                throw new IllegalArgumentException("Class cannot contain itself as a data field");
 
             // Regular fields are already instantiated as null.
             if (!IJAttributable.class.isAssignableFrom(fieldType)) continue;
 
-            JAttributes fieldAttributes = newAttributes(fieldType);
+            JAttributes fieldAttributes = createAttributes(fieldType);
 
             if (JAttributedField.class.isAssignableFrom(fieldType)) {
-                JUtils.writePrivateField(dataFieldsObject, field, JAttributedField.create(fieldAttributes));
-            } else if (JFileElementGroup.class.isAssignableFrom(fieldType)) {
-                JUtils.writePrivateField(dataFieldsObject, field, newElement(JFileElementGroup.class, fieldAttributes));
-            } else if (JFileElement.class.isAssignableFrom(fieldType)) {
-                JUtils.writePrivateField(dataFieldsObject, field, newElement(fieldType, fieldAttributes));
-            }
+                JUtils.writePrivateField(
+                    dataFieldsObject,
+                    field,
+                    JAttributedField.create(null, fieldAttributes)
+                );
+            } else
+                if (JFileElementGroup.class.isAssignableFrom(fieldType)) {
+                    JUtils.writePrivateField(
+                        dataFieldsObject,
+                        field,
+                        createElement(JFileElementGroup.class, fieldAttributes)
+                    );
+                } else
+                    if (JFileElement.class.isAssignableFrom(fieldType)) {
+                        JUtils.writePrivateField(dataFieldsObject, field, createElement(fieldType, fieldAttributes));
+                    }
         }
     }
 
@@ -77,12 +99,13 @@ public final class JFileElementFactory {
      * @throws IllegalArgumentException Element has attribute definitions at both the class and field level.
      */
     @NotNull
-    public <T> T newElement(@NotNull Class<T> elementClass, @NotNull JAttributes elementFieldAttributes) {
+    public <T> T createElement(@NotNull Class<T> elementClass, @NotNull JAttributes elementFieldAttributes)
+    {
         if (!JFileElement.class.isAssignableFrom(elementClass))
             throw new IllegalArgumentException("Class does not inherit from JFileElement");
 
         try {
-            JAttributes elementClassAttributes = newAttributes(elementClass);
+            JAttributes elementClassAttributes = createAttributes(elementClass);
 
             T element;
             boolean hasClassAttributes = !elementClassAttributes.isEmpty();
@@ -115,8 +138,9 @@ public final class JFileElementFactory {
      * @throws IllegalArgumentException Element has attribute definitions at both the class and field level,
      */
     @NotNull
-    public <T extends JFileElement> T newElement(@NotNull Class<T> elementClass) {
-        JAttributes elementFieldAttributes = newAttributes(elementClass);
-        return newElement(elementClass, elementFieldAttributes);
+    public <T extends JFileElement> T createElement(@NotNull Class<T> elementClass)
+    {
+        JAttributes elementFieldAttributes = createAttributes(elementClass);
+        return createElement(elementClass, elementFieldAttributes);
     }
 }

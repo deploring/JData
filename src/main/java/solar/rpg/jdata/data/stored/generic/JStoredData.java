@@ -19,30 +19,31 @@ public abstract class JStoredData {
     private JStoredDataState dataState;
 
     /**
-     * Constructs a new {@code JStoredData} instance.
-     * The stored data state is set to {@link JStoredDataState#UNITIALISED}, and the instance should not be used until
-     * it is initialised. Initialisation is implemented at a lower level by the particular storage medium.
+     * Constructs a new {@code JStoredData} instance. The stored data state is set to {@link
+     * JStoredDataState#UNITIALISED}, and the instance should not be used until it is initialised. Initialisation is
+     * implemented at a lower level by the particular storage medium.
      */
-    protected JStoredData() {
+    protected JStoredData()
+    {
         dataState = JStoredDataState.UNITIALISED;
     }
 
     /**
-     * Commits the current state of the stored data in memory to the storage medium.
-     * This should also reset <em>original values</em>, as they are now unchanged.
-     * //TODO: Keep track of original values.
+     * Commits the current state of the stored data in memory to the storage medium. This should also reset <em>original
+     * values</em>, as they are now unchanged. //TODO: Keep track of original values.
      *
      * @throws IllegalStateException Cannot commit in current state.
      * @see JStoredDataState#canCommit()
      */
-    public final void commit() {
+    public final void commit()
+    {
         if (!getStoredDataState().canCommit()) throw new IllegalStateException("Cannot commit in current state");
         onCommit();
     }
 
     /**
-     * Child classes should implement appropriate logic to commit the current state of the stored data in memory to
-     * the specific storage medium.
+     * Child classes should implement appropriate logic to commit the current state of the stored data in memory to the
+     * specific storage medium.
      */
     protected abstract void onCommit();
 
@@ -52,7 +53,8 @@ public abstract class JStoredData {
      * @throws IllegalStateException Cannot reload in current state.
      * @see JStoredDataState#canRefresh() ()
      */
-    public final void reload() {
+    public final void reload()
+    {
         if (!getStoredDataState().canCommit()) throw new IllegalStateException("Cannot commit in current state");
         onRefresh();
     }
@@ -68,7 +70,8 @@ public abstract class JStoredData {
      *
      * @throws IllegalStateException Cannot delete a stored object already marked as {@link JStoredDataState#REMOVED}.
      */
-    public final void delete() {
+    public final void delete()
+    {
         switch (getStoredDataState()) {
             case UNCHANGED, CREATED, CHANGED -> setStoredDataState(JStoredDataState.REMOVED);
             case REMOVED -> throw new IllegalStateException("Cannot remove an already-removed stored object");
@@ -83,11 +86,13 @@ public abstract class JStoredData {
     protected abstract void onDelete();
 
     @NotNull
-    public final JStoredDataState getStoredDataState() {
+    public final JStoredDataState getStoredDataState()
+    {
         return dataState;
     }
 
-    protected final void setStoredDataState(@NotNull JStoredDataState dataState) {
+    protected final void setStoredDataState(@NotNull JStoredDataState dataState)
+    {
         if (dataState == JStoredDataState.UNITIALISED) throw new IllegalArgumentException("Invalid stored data state");
         this.dataState = dataState;
     }

@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * Stores attribute information for a concrete implementation of the {@link IJAttributable} interface.
- * The following information is stored for each attribute:
+ * Stores attribute information for a concrete implementation of the {@link IJAttributable} interface. The following
+ * information is stored for each attribute:
  * <ul>
  *     <li>Name, for identification.</li>
  *     <li>Type of data stored (see {@link #get(String)}).</li>
@@ -51,7 +51,8 @@ public class JAttributes {
     public JAttributes(
         @NotNull List<String> attributeNames,
         @NotNull List<Serializable> attributeValues,
-        @NotNull List<Class<? extends Serializable>> attributeTypes) {
+        @NotNull List<Class<? extends Serializable>> attributeTypes)
+    {
         if (attributeNames.size() != attributeValues.size() || attributeNames.size() != attributeTypes.size())
             throw new IllegalArgumentException("Amount of attribute names, values, and types must match");
         this.attributeNames = attributeNames;
@@ -62,12 +63,14 @@ public class JAttributes {
             .filter(allowedType -> allowedType.isAssignableFrom(attributeType))
             .findFirst().orElseThrow(() -> new IllegalArgumentException("Illegal typr provided")));
 
-        IntStream.range(0, attributeValues.size()).forEach(i -> validateValueType(attributeValues.get(i),
-                                                                                  attributeTypes.get(i)));
+        IntStream.range(0, attributeValues.size()).forEach(i -> validateValueType(
+            attributeValues.get(i),
+            attributeTypes.get(i)
+        ));
     }
 
     /**
-     * Constructs a new {@code JAttributes} instance with all attributes instantiated as null.
+     * Constructs a new {@code JAttributes} instance with all attribute values instantiated as null.
      *
      * @param attributeNames Names of all attributes.
      * @param attributeTypes Types of all attribute values.
@@ -77,22 +80,25 @@ public class JAttributes {
      */
     public JAttributes(
         @NotNull List<String> attributeNames,
-        @NotNull List<Class<? extends Serializable>> attributeTypes) {
+        @NotNull List<Class<? extends Serializable>> attributeTypes)
+    {
         this(attributeNames, Arrays.asList(new Serializable[attributeNames.size()]), attributeTypes);
     }
 
     /**
-     * Constructs a new {@code JAttributes} instances with no attributes.
-     * This should be used where attributes are not defined (but an instance is required).
+     * Constructs a new {@code JAttributes} instances with no attributes. This should be used where attributes are not
+     * defined (but an instance is required).
      */
-    public JAttributes() {
+    public JAttributes()
+    {
         this(List.of(), List.of(), List.of());
     }
 
     /**
      * @return True, if there are no attributes stored under this object.
      */
-    public boolean isEmpty() {
+    public boolean isEmpty()
+    {
         return attributeNames.size() == 0;
     }
 
@@ -105,7 +111,8 @@ public class JAttributes {
      * @throws IllegalArgumentException Attribute does not exist.
      * @throws IllegalArgumentException Value type does not match actual attribute type.
      */
-    public <V extends Serializable> void set(@NotNull String attributeName, @Nullable V value) {
+    public <V extends Serializable> void set(@NotNull String attributeName, @Nullable V value)
+    {
         int attributeIndex = attributeNames.indexOf(attributeName);
         if (attributeIndex == -1)
             throw new IllegalArgumentException(String.format("Attribute %s does not exist", attributeName));
@@ -120,7 +127,8 @@ public class JAttributes {
      * @return The value of the attribute, returned as the given type.
      */
     @SuppressWarnings("unchecked")
-    public <V extends Serializable> V get(@NotNull String attributeName) {
+    public <V extends Serializable> V get(@NotNull String attributeName)
+    {
         return (V) attributeValues.get(attributeNames.indexOf(attributeName));
     }
 
@@ -132,13 +140,16 @@ public class JAttributes {
      * @param <V>           The actual type of the value.
      * @throws IllegalArgumentException Value type does not match expected type.
      */
-    private <V> void validateValueType(@Nullable V value, @NotNull Class<?> expectedClass) {
+    private <V> void validateValueType(@Nullable V value, @NotNull Class<?> expectedClass)
+    {
         if (value == null) return;
 
         Class<?> actualClass = value.getClass();
         if (!expectedClass.isAssignableFrom(actualClass))
-            throw new IllegalArgumentException(String.format("Value type %s does not match expected type %s",
-                                                             actualClass.getSimpleName(),
-                                                             expectedClass));
+            throw new IllegalArgumentException(String.format(
+                "Value type %s does not match expected type %s",
+                actualClass.getSimpleName(),
+                expectedClass
+            ));
     }
 }

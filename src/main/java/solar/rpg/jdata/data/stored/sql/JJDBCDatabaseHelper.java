@@ -23,7 +23,8 @@ public final class JJDBCDatabaseHelper {
      * @param port     SQL server port.
      * @param database Name of schema/database on SQL server.
      */
-    public JJDBCDatabaseHelper(String username, String password, String hostname, String port, String database) {
+    public JJDBCDatabaseHelper(String username, String password, String hostname, String port, String database)
+    {
         super();
         this.USERNAME = username;
         this.PASSWORD = password;
@@ -41,7 +42,8 @@ public final class JJDBCDatabaseHelper {
      *
      * @throws RuntimeException If the JDBC driver is not installed.
      */
-    private void initialize() {
+    private void initialize()
+    {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
@@ -50,10 +52,10 @@ public final class JJDBCDatabaseHelper {
     }
 
     /**
-     * Checks if the MySQL connection is still alive.
-     * Re-opens the connection if it is no longer alive.
+     * Checks if the MySQL connection is still alive. Re-opens the connection if it is no longer alive.
      */
-    private void checkConnection() {
+    private void checkConnection()
+    {
         assert connection != null : "Expected connection to exist";
 
         try {
@@ -67,7 +69,8 @@ public final class JJDBCDatabaseHelper {
     /**
      * Attempt to open a connection to the SQL database.
      */
-    private void open() {
+    private void open()
+    {
         initialize();
         try {
             connection = DriverManager.getConnection(this.URL, this.USERNAME, this.PASSWORD);
@@ -79,10 +82,10 @@ public final class JJDBCDatabaseHelper {
     }
 
     /**
-     * Closes the MySQL connection. Does not attempt to re-open.
-     * Unused.
+     * Closes the MySQL connection. Does not attempt to re-open. Unused.
      */
-    public void close() {
+    public void close()
+    {
         if (connection == null) return;
 
         try {
@@ -99,7 +102,8 @@ public final class JJDBCDatabaseHelper {
      *
      * @param query The SQL query.
      */
-    public PreparedStatement prepare(String query) {
+    public PreparedStatement prepare(String query)
+    {
         checkConnection();
         try {
             return connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -115,7 +119,8 @@ public final class JJDBCDatabaseHelper {
      * @param SQL       Query to run, which may contain parameters.
      * @param paramsSet Parameter values
      */
-    private void runUpdateSQL(@NotNull String SQL, @NotNull JSQLParameters... paramsSet) {
+    private void runUpdateSQL(@NotNull String SQL, @NotNull JSQLParameters... paramsSet)
+    {
         PreparedStatement statement = prepare(SQL);
 
         try {
@@ -143,14 +148,16 @@ public final class JJDBCDatabaseHelper {
      * @param primaryKeyParams Primary key parameters of the stored data record to retrieve.
      */
     @NotNull
-    PreparedStatement getStoredDataQuery(@NotNull String tableName, @NotNull JSQLParameters primaryKeyParams) {
+    PreparedStatement getStoredDataQuery(@NotNull String tableName, @NotNull JSQLParameters primaryKeyParams)
+    {
         assert !primaryKeyParams.isEmpty() : "At least one primary key parameter must be provided";
 
         try {
             PreparedStatement select = prepare(String.format(
                 " SELECT * FROM %1$s WHERE %2$s",
                 tableName,
-                primaryKeyParams.buildWhereClause()));
+                primaryKeyParams.buildWhereClause()
+            ));
 
             primaryKeyParams.populateQueryParameters(select);
 
@@ -166,7 +173,8 @@ public final class JJDBCDatabaseHelper {
      *
      * @param storedData Stored object to commit.
      */
-    public void commitStoredData(@NotNull JSQLStoredData storedData) {
+    public void commitStoredData(@NotNull JSQLStoredData storedData)
+    {
         /*assert storedData.canCommit() : "The given stored data object is not ready for committing";
 
         StringBuilder updateQuery = new StringBuilder(String.format(

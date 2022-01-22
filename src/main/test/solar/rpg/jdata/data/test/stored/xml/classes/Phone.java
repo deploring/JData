@@ -5,7 +5,8 @@ import solar.rpg.jdata.data.stored.file.JFileElement;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 import solar.rpg.jdata.data.stored.file.attribute.JHasAttributes;
 
-@JHasAttributes(names = "phoneType", types = Phone.PhoneType.class)
+@JHasAttributes(names = "phoneType",
+                types = Phone.PhoneType.class)
 public class Phone extends JFileElement {
 
     /**
@@ -15,20 +16,24 @@ public class Phone extends JFileElement {
     private JAttributedField<String> phoneNumber;
 
     @Nullable
-    public final String getCountryCode() {
+    public final String getCountryCode()
+    {
         return countryCode.get();
     }
 
     @Nullable
-    public final String getPhoneNumber() {
+    public final String getPhoneNumber()
+    {
         return phoneNumber.get();
     }
 
-    public void setCountryCode(@Nullable String countryCode) {
+    public void setCountryCode(@Nullable String countryCode)
+    {
         this.countryCode.set(countryCode);
     }
 
-    public void setPhoneNumber(@Nullable String phoneNumber) {
+    public void setPhoneNumber(@Nullable String phoneNumber)
+    {
         this.phoneNumber.set(phoneNumber);
     }
 

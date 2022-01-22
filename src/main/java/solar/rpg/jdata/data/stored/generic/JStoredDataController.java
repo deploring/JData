@@ -11,8 +11,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * This is a class capable of processing stored data implemented by the given storage methods.
- * The currently supported storage methods are:
+ * This is a class capable of processing stored data implemented by the given storage methods. The currently supported
+ * storage methods are:
  * <ul>
  *     <li>MySQL (JDBC) (wip)</li>
  *     <li>JSON (wip)</li>
@@ -30,7 +30,8 @@ public abstract class JStoredDataController<T extends JStoredData> {
      */
     protected final ArrayList<T> storedDataCache;
 
-    public JStoredDataController() {
+    public JStoredDataController()
+    {
         storedDataCache = new ArrayList<>();
     }
 
@@ -59,7 +60,8 @@ public abstract class JStoredDataController<T extends JStoredData> {
     public <D extends T> D getStoredData(
         @NotNull Path filePath,
         @NotNull Class<D> storedDataClass,
-        @NotNull Predicate<D> storedDataFilter) {
+        @NotNull Predicate<D> storedDataFilter)
+    {
         D result = findCachedStoredData(storedDataClass, storedDataFilter);
         if (result != null) return result;
 
@@ -73,8 +75,8 @@ public abstract class JStoredDataController<T extends JStoredData> {
     }
 
     /**
-     * Attempts to find an already-loaded {@link JStoredData} object in the cache. If no match is found, then
-     * {@code null} is returned.
+     * Attempts to find an already-loaded {@link JStoredData} object in the cache. If no match is found, then {@code
+     * null} is returned.
      *
      * @param storedDataClass  The concrete type of stored data that we wish to retrieve.
      * @param storedDataFilter A condition to match against an existing <u>single</u> stored data object.
@@ -84,17 +86,19 @@ public abstract class JStoredDataController<T extends JStoredData> {
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public <D extends T> D findCachedStoredData(Class<D> storedDataClass, Predicate<D> storedDataFilter) {
+    public <D extends T> D findCachedStoredData(Class<D> storedDataClass, Predicate<D> storedDataFilter)
+    {
         List<D> matches = storedDataCache.stream()
             .filter(genericStoredData -> storedDataClass.isAssignableFrom(genericStoredData.getClass())
             ).map(genericStoredData -> (D) genericStoredData)
             .filter(storedDataFilter)
             .collect(Collectors.toList());
         if (matches.size() > 1) throw new IllegalArgumentException("Multiple matches found");
-        else if (matches.size() == 1) {
-            D match = matches.get(0);
-            if (!match.getStoredDataState().canCommit()) match.reload();
-            return match;
-        } else return null;
+        else
+            if (matches.size() == 1) {
+                D match = matches.get(0);
+                if (!match.getStoredDataState().canCommit()) match.reload();
+                return match;
+            } else return null;
     }
 }

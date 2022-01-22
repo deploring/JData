@@ -33,7 +33,8 @@ public enum JStoredDataState {
 
     private final boolean requiresCommit, canRefresh;
 
-    JStoredDataState(boolean requiresCommit, boolean canRefresh) {
+    JStoredDataState(boolean requiresCommit, boolean canRefresh)
+    {
         this.requiresCommit = requiresCommit;
         this.canRefresh = canRefresh;
     }
@@ -41,14 +42,16 @@ public enum JStoredDataState {
     /**
      * @return True, if there are changes to a {@link JStoredData} object that will be lost if not committed.
      */
-    public boolean canCommit() {
+    public boolean canCommit()
+    {
         return requiresCommit;
     }
 
     /**
      * @return True, if a {@link JStoredData} object is allowed to refresh in the given state.
      */
-    public boolean canRefresh() {
+    public boolean canRefresh()
+    {
         return canRefresh;
     }
 }

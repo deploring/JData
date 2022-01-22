@@ -24,20 +24,23 @@ public abstract class JFileElement implements IJAttributable {
      *
      * @param attributes The attributes associated with this element.
      */
-    public JFileElement(@NotNull JAttributes attributes) {
+    public JFileElement(@NotNull JAttributes attributes)
+    {
         this.attributes = attributes;
     }
 
     /**
      * Constructs a new {@code JFileElement} instance with no attributes.
      */
-    public JFileElement() {
+    public JFileElement()
+    {
         this.attributes = new JAttributes();
     }
 
     @NotNull
     @Override
-    public JAttributes getAttributes() {
+    public JAttributes getAttributes()
+    {
         return attributes;
     }
 }

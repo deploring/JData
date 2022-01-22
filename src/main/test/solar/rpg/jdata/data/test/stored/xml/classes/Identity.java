@@ -7,43 +7,46 @@ import solar.rpg.jdata.data.stored.file.attribute.JHasAttributes;
 
 import java.util.UUID;
 
-@JHasAttributes(names = "version", types = Integer.class)
+@JHasAttributes(names = "version",
+                types = Integer.class)
 public class Identity extends JFileStoredData {
 
     private UUID uuid;
     private Name name;
+    private int age;
+    private JFileElementGroup<Phone> phones;
 
-    public UUID getUuid() {
+    public UUID getUuid()
+    {
         return uuid;
     }
 
-    public void setUuid(UUID uuid) {
+    public void setUuid(UUID uuid)
+    {
         this.uuid = uuid;
     }
 
-    public Name getName() {
+    public Name getName()
+    {
         return name;
     }
 
-    public void setName(Name name) {
+    public void setName(Name name)
+    {
         this.name = name;
     }
 
-    public JFileElementGroup<Phone> getPhones() {
+    public JFileElementGroup<Phone> getPhones()
+    {
         return phones;
     }
 
-    public void setPhones(JFileElementGroup<Phone> phones) {
+    public void setPhones(JFileElementGroup<Phone> phones)
+    {
         this.phones = phones;
     }
 
-    private JFileElementGroup<Phone> phones;
-
     public static class Name extends JFileElement {
-
-        public Name() {
-
-        }
 
         private String givenNames;
         private String familyName;

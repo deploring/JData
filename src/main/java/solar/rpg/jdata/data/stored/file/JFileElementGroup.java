@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.JUtils;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
+import solar.rpg.jdata.data.stored.file.factory.JNewFileElementFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,7 +16,7 @@ import java.util.function.Predicate;
  * of element, <em>i.e., a "locations" group for a list of "location" elements</em>. Each element's lifecycle is managed
  * through this class, and new elements can be created on demand.
  *
- * @param <E> The type of element that is ma
+ * @param <E> The type of element that is managed by this group.
  */
 public final class JFileElementGroup<E extends JFileElement> extends JFileElement implements Iterable<E> {
 
@@ -28,7 +29,8 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      * @param children   The existing elements.
      * @param attributes The attributes associated with this element.
      */
-    public JFileElementGroup(@NotNull List<E> children, @NotNull JAttributes attributes) {
+    public JFileElementGroup(@NotNull List<E> children, @NotNull JAttributes attributes)
+    {
         super(attributes);
         this.children = children;
     }
@@ -38,20 +40,22 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      *
      * @param attributes The attributes associated with this element.
      */
-    public JFileElementGroup(@NotNull JAttributes attributes) {
+    public JFileElementGroup(@NotNull JAttributes attributes)
+    {
         super(attributes);
         this.children = new ArrayList<>();
     }
 
     /**
-     * Creates a new child element which is placed into the list of child elements and returned.
-     * Any nested elements inside the child element are also created.
+     * Creates a new child element which is placed into the list of child elements and returned. Any nested elements
+     * inside the child element are also created.
      *
      * @return The new child element.
      */
     @NotNull
-    public E newChild() {
-        E newElement = new JFileElementFactory().newElement(JUtils.getGenericType(this.getClass()));
+    public E newChild()
+    {
+        E newElement = new JNewFileElementFactory().createElement(JUtils.getGenericType(this.getClass()));
         children.add(newElement);
         return newElement;
     }
@@ -61,7 +65,8 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      * @return The child element at the given index.
      */
     @NotNull
-    public E get(int index) {
+    public E get(int index)
+    {
         return children.get(index);
     }
 
@@ -71,7 +76,8 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      * @throws IllegalArgumentException Multiple matches were found.
      */
     @Nullable
-    public E get(@NotNull Predicate<E> elementFilter) {
+    public E get(@NotNull Predicate<E> elementFilter)
+    {
         int elementIndex = indexOf(elementFilter);
         return elementIndex == -1 ? null : get(elementIndex);
     }
@@ -81,7 +87,8 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      * @return The index of the matched child element, otherwise -1 if no match was found.
      * @throws IllegalArgumentException Multiple matches were found.
      */
-    public int indexOf(@NotNull Predicate<E> elementFilter) {
+    public int indexOf(@NotNull Predicate<E> elementFilter)
+    {
         int result = -1;
         for (int i = 0, childrenSize = children.size(); i < childrenSize; i++) {
             E element = children.get(i);
@@ -97,7 +104,8 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      * @param elementFilter A condition to match against any child element.
      * @return True if any match was found, otherwise false.
      */
-    public boolean contains(@NotNull Predicate<E> elementFilter) {
+    public boolean contains(@NotNull Predicate<E> elementFilter)
+    {
         return children.stream().anyMatch(elementFilter);
     }
 
@@ -106,7 +114,8 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      *
      * @param index The index of the child element.
      */
-    public void remove(int index) {
+    public void remove(int index)
+    {
         children.remove(index);
     }
 
@@ -115,17 +124,20 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
      *
      * @param elementFilter A condition to match against any child element.
      */
-    public void removeIf(@NotNull Predicate<E> elementFilter) {
+    public void removeIf(@NotNull Predicate<E> elementFilter)
+    {
         children.removeIf(elementFilter);
     }
 
-    public void clear() {
+    public void clear()
+    {
         children.clear();
     }
 
     @NotNull
     @Override
-    public Iterator<E> iterator() {
+    public Iterator<E> iterator()
+    {
         return children.iterator();
     }
 }
