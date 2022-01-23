@@ -74,17 +74,15 @@ public class JNewFileElementFactory {
                     field,
                     JAttributedField.create(null, fieldAttributes)
                 );
-            } else
-                if (JFileElementGroup.class.isAssignableFrom(fieldType)) {
-                    JUtils.writePrivateField(
-                        dataFieldsObject,
-                        field,
-                        createElement(JFileElementGroup.class, fieldAttributes)
-                    );
-                } else
-                    if (JFileElement.class.isAssignableFrom(fieldType)) {
-                        JUtils.writePrivateField(dataFieldsObject, field, createElement(fieldType, fieldAttributes));
-                    }
+            } else if (JFileElementGroup.class.isAssignableFrom(fieldType)) {
+                JUtils.writePrivateField(
+                    dataFieldsObject,
+                    field,
+                    createElement(JFileElementGroup.class, fieldAttributes)
+                );
+            } else if (JFileElement.class.isAssignableFrom(fieldType)) {
+                JUtils.writePrivateField(dataFieldsObject, field, createElement(fieldType, fieldAttributes));
+            }
         }
     }
 
@@ -112,7 +110,9 @@ public class JNewFileElementFactory {
             boolean hasFieldAttributes = !elementFieldAttributes.isEmpty();
 
             if (hasClassAttributes && hasFieldAttributes)
-                throw new IllegalArgumentException("Element has multiple attribute definitions");
+                throw new IllegalArgumentException(String.format(
+                    "Element %s has multiple attribute definitions",
+                    elementClass.getSimpleName()));
 
             try {
                 element = elementClass.getDeclaredConstructor(JAttributes.class).newInstance(hasFieldAttributes
@@ -130,7 +130,7 @@ public class JNewFileElementFactory {
     }
 
     /**
-     * Creates a new instance of the given {@code IJFileElement} class with no field attributes.
+     * Creates a new instance of the given {@code IJFileElement} class.
      *
      * @param elementClass An instance of the element class.
      * @param <T>          The type of element to create.
@@ -140,7 +140,6 @@ public class JNewFileElementFactory {
     @NotNull
     public <T extends JFileElement> T createElement(@NotNull Class<T> elementClass)
     {
-        JAttributes elementFieldAttributes = createAttributes(elementClass);
-        return createElement(elementClass, elementFieldAttributes);
+        return createElement(elementClass, new JAttributes());
     }
 }

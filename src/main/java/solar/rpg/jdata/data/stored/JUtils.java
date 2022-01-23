@@ -1,5 +1,6 @@
 package solar.rpg.jdata.data.stored;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,8 +72,17 @@ public final class JUtils {
      */
     public static void writePrivateField(@NotNull Object instance, @NotNull Field field, @Nullable Object value)
     {
-        if (value != null && !field.getType().isAssignableFrom(value.getClass()))
-            throw new IllegalArgumentException("Field type and value type do not match");
+        if (value != null) {
+            Class<?> fieldType = field.getType();
+            Class<?> valueType = value.getClass();
+            if (!ClassUtils.isAssignable(fieldType, valueType))
+                throw new IllegalArgumentException(String.format(
+                    "Field type %s and value type %s do not match",
+                    field.getType().getSimpleName(),
+                    value.getClass().getSimpleName()
+                ));
+        }
+
         if (!Modifier.isPrivate(field.getModifiers()))
             throw new IllegalArgumentException("Field is not private");
         try {

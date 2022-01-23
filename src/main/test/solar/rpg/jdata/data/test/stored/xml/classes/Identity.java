@@ -14,6 +14,8 @@ public class Identity extends JFileStoredData {
     private UUID uuid;
     private Name name;
     private int age;
+    private char charr;
+    private Character character;
     private JFileElementGroup<Phone> phones;
 
     public UUID getUuid()

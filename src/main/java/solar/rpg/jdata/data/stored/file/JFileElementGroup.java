@@ -21,29 +21,36 @@ import java.util.function.Predicate;
 public final class JFileElementGroup<E extends JFileElement> extends JFileElement implements Iterable<E> {
 
     @NotNull
+    private final Class<E> elementClass;
+    @NotNull
+    private final JNewFileElementFactory newFileElementFactory;
+    @NotNull
     private final List<E> children;
 
     /**
      * Constructs a new {@code JFileElementGroup} instance.
      *
-     * @param children   The existing elements.
-     * @param attributes The attributes associated with this element.
+     * @param elementClass The class of the type of element stored.
+     * @param children     The existing elements.
+     * @param attributes   The attributes associated with this element.
      */
-    public JFileElementGroup(@NotNull List<E> children, @NotNull JAttributes attributes)
+    public JFileElementGroup(@NotNull Class<E> elementClass, @NotNull List<E> children, @NotNull JAttributes attributes)
     {
         super(attributes);
+        this.elementClass = elementClass;
         this.children = children;
+        newFileElementFactory = new JNewFileElementFactory();
     }
 
     /**
      * Constructs a new {@code JFileElementGroup} instance without any child elements.
      *
-     * @param attributes The attributes associated with this element.
+     * @param elementClass The class of the type of element stored.
+     * @param attributes   The attributes associated with this element.
      */
-    public JFileElementGroup(@NotNull JAttributes attributes)
+    public JFileElementGroup(@NotNull Class<E> elementClass, @NotNull JAttributes attributes)
     {
-        super(attributes);
-        this.children = new ArrayList<>();
+        this(elementClass, new ArrayList<>(), attributes);
     }
 
     /**
@@ -55,7 +62,7 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
     @NotNull
     public E newChild()
     {
-        E newElement = new JNewFileElementFactory().createElement(JUtils.getGenericType(this.getClass()));
+        E newElement = newFileElementFactory.createElement(elementClass);
         children.add(newElement);
         return newElement;
     }

@@ -28,7 +28,8 @@ public class JAttributes {
     private static final List<Class<?>> ALLOWED_TYPES = List.of(new Class<?>[]{
         String.class,
         Character.class,
-        Number.class
+        Number.class,
+        Enum.class
     });
 
     @NotNull
@@ -61,7 +62,7 @@ public class JAttributes {
 
         attributeTypes.forEach(attributeType -> ALLOWED_TYPES.stream()
             .filter(allowedType -> allowedType.isAssignableFrom(attributeType))
-            .findFirst().orElseThrow(() -> new IllegalArgumentException("Illegal typr provided")));
+            .findFirst().orElseThrow(() -> new IllegalArgumentException("Illegal type provided")));
 
         IntStream.range(0, attributeValues.size()).forEach(i -> validateValueType(
             attributeValues.get(i),

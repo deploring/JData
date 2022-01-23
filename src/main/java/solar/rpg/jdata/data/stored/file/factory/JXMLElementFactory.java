@@ -4,15 +4,13 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import solar.rpg.jdata.data.stored.JUtils;
 import solar.rpg.jdata.data.stored.file.JFileElement;
 import solar.rpg.jdata.data.stored.file.JFileElementGroup;
 import solar.rpg.jdata.data.stored.file.JFileStoredData;
-import solar.rpg.jdata.data.stored.file.attribute.IJAttributable;
-import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
-import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
-import solar.rpg.jdata.data.stored.file.attribute.JHasAttributes;
+import solar.rpg.jdata.data.stored.file.attribute.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,7 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -37,15 +36,14 @@ public class JXMLElementFactory {
     @NotNull
     private final Element documentElement;
 
-    public JXMLElementFactory(@NotNull Path filePath)
+    public JXMLElementFactory(@NotNull File file)
     {
-        File theFile = filePath.toFile();
-        if (!theFile.exists())
-            throw new IllegalStateException("File does not exist: " + filePath);
-        if (!theFile.canRead())
-            throw new IllegalStateException("Cannot read file: " + filePath);
+        if (!file.exists())
+            throw new IllegalStateException("File does not exist: " + file);
+        if (!file.canRead())
+            throw new IllegalStateException("Cannot read file: " + file);
         try {
-            Document XMLDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(theFile);
+            Document XMLDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
             XMLDoc.normalize();
             documentElement = XMLDoc.getDocumentElement();
         } catch (SAXException | IOException | ParserConfigurationException e) {
@@ -53,7 +51,9 @@ public class JXMLElementFactory {
         }
     }
 
-    public final Element getDocumentElement() {
+    @NotNull
+    public final Element getDocumentElement()
+    {
         return documentElement;
     }
 
@@ -94,7 +94,10 @@ public class JXMLElementFactory {
             throw new IllegalArgumentException("Provided class is not attributable");
         if (!attributable.isAnnotationPresent(JHasAttributes.class))
             return new JAttributes();
-        if (!node.hasAttributes()) throw new IllegalArgumentException("Attributes not found");
+        if (!node.hasAttributes()) throw new IllegalArgumentException(String.format(
+            "Attributes for %s not found",
+            attributable.getSimpleName()
+        ));
 
         JHasAttributes attributes = attributable.getAnnotation(JHasAttributes.class);
 
@@ -106,7 +109,7 @@ public class JXMLElementFactory {
             IntStream.range(0, attributes.names().length).mapToObj(i -> {
                 Node attribute = node.getAttributes().item(i);
                 validateNodeName(attribute, attributes.names()[i]);
-                return attribute.getNodeValue();
+                return JDataEncoder.fromString(attribute.getNodeValue(), attributes.types()[i]);
             }).collect(Collectors.toList()),
             List.of(attributes.types()));
     }
@@ -119,19 +122,27 @@ public class JXMLElementFactory {
      */
     private Node getTargetNode(@NotNull Node parentNode, @NotNull String targetNodeName)
     {
-        return IntStream.range(0, parentNode.getChildNodes().getLength())
-            .mapToObj(i -> parentNode.getChildNodes().item(i))
-            .filter(node -> node.getNodeName().equalsIgnoreCase(targetNodeName))
-            .collect(JUtils.singletonCollector());
+        try {
+            return IntStream.range(0, parentNode.getChildNodes().getLength())
+                .mapToObj(i -> parentNode.getChildNodes().item(i))
+                .filter(node -> node.getNodeName().equalsIgnoreCase(targetNodeName))
+                .collect(JUtils.singletonCollector());
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException(String.format(
+                "Node %s not found in element %s",
+                targetNodeName,
+                parentNode.getNodeName()));
+        }
     }
 
     /**
      * Initialises all data fields for a file element or stored data, using existing XML data.
      *
-     * @param parentNode       The XML node which contains the data fields.
+     * @param parentElement    The XML node which contains the data fields.
      * @param dataFieldsObject The object with data fields to initialise.
      */
-    private void initialiseDataFields(@NotNull Node parentNode, @NotNull Object dataFieldsObject)
+    @SuppressWarnings("unchecked") // JFileElementGroup element type is guaranteed to be a descendant of JFileElement.
+    private void initialiseDataFields(@NotNull Element parentElement, @NotNull Object dataFieldsObject)
     {
         for (Field field : dataFieldsObject.getClass().getDeclaredFields()) {
             Class<?> fieldType = field.getType();
@@ -139,10 +150,15 @@ public class JXMLElementFactory {
                 throw new IllegalArgumentException("Class cannot contain itself as a data field");
             }
 
-            Node targetNode = getTargetNode(parentNode, field.getName());
+            Node targetNode = getTargetNode(parentElement, field.getName());
 
             if (!IJAttributable.class.isAssignableFrom(fieldType)) {
-                JUtils.writePrivateField(dataFieldsObject, field, targetNode.getNodeValue());
+                JUtils.writePrivateField(
+                    dataFieldsObject,
+                    field,
+                    JDataEncoder.fromString(targetNode.getTextContent(), fieldType)
+                );
+                continue;
             }
 
             JAttributes fieldAttributes = createAttributes(targetNode, fieldType);
@@ -151,50 +167,86 @@ public class JXMLElementFactory {
                 JUtils.writePrivateField(
                     dataFieldsObject,
                     field,
-                    JAttributedField.create(targetNode.getNodeValue(), fieldAttributes));
-            } else if (JFileElementGroup.class.isAssignableFrom(fieldType)) {
+                    JAttributedField.create(
+                        JDataEncoder.fromString(
+                            targetNode.getTextContent(),
+                            (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]
+                        ),
+                        fieldAttributes
+                    )
+                );
+            }
+
+            if (!(targetNode instanceof Element targetElement))
+                throw new IllegalArgumentException(String.format("%s was not an element", targetNode.getNodeName()));
+
+            if (JFileElementGroup.class.isAssignableFrom(fieldType)) {
                 JUtils.writePrivateField(
                     dataFieldsObject,
                     field,
-                    createElement(targetNode, JFileElementGroup.class, fieldAttributes));
+                    createElementGroup(
+                        targetElement,
+                        (Class<? extends JFileElement>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0],
+                        fieldAttributes)
+                );
             } else if (JFileElement.class.isAssignableFrom(fieldType)) {
                 JUtils.writePrivateField(
                     dataFieldsObject,
                     field,
-                    createElement(targetNode, fieldType, fieldAttributes));
+                    createElement(targetElement, fieldType, fieldAttributes));
             }
         }
     }
 
+    private <E extends JFileElement> JFileElementGroup<E> createElementGroup(
+        @NotNull Element parentElement,
+        @NotNull Class<E> elementClass,
+        @NotNull JAttributes fieldAttributes)
+    {
+        List<E> children = new ArrayList<>();
+        NodeList childElements = parentElement.getElementsByTagName(elementClass.getSimpleName());
+
+        for (int i = 0; i < childElements.getLength(); i++) {
+            Element childElement = (Element) childElements.item(i);
+            children.add(createElement(childElement, elementClass, new JAttributes()));
+        }
+
+        return new JFileElementGroup<>(elementClass, children, fieldAttributes);
+    }
 
     @NotNull
     public <T> T createElement(
-        @NotNull Node parentNode,
+        @NotNull Element parentElement,
         @NotNull Class<T> elementClass,
-        @NotNull JAttributes elementFieldAttributes)
+        @NotNull JAttributes fieldAttributes)
     {
         if (!JFileElement.class.isAssignableFrom(elementClass))
             throw new IllegalArgumentException("Class does not inherit from JFileElement");
 
         try {
-            JAttributes elementClassAttributes = createAttributes(parentNode, elementClass);
+            JAttributes elementClassAttributes = createAttributes(parentElement, elementClass);
 
             T element;
             boolean hasClassAttributes = !elementClassAttributes.isEmpty();
-            boolean hasFieldAttributes = !elementFieldAttributes.isEmpty();
+            boolean hasFieldAttributes = !fieldAttributes.isEmpty();
 
             if (hasClassAttributes && hasFieldAttributes)
                 throw new IllegalArgumentException("Element has multiple attribute definitions");
 
             try {
                 element = elementClass.getDeclaredConstructor(JAttributes.class).newInstance(hasFieldAttributes
-                                                                                             ? elementFieldAttributes
+                                                                                             ? fieldAttributes
                                                                                              : elementClassAttributes);
             } catch (NoSuchMethodException e) {
+                if (hasClassAttributes || hasFieldAttributes)
+                    throw new IllegalArgumentException(String.format(
+                        "Constructor %s(JAttributes) not found",
+                        elementClass.getSimpleName())
+                    );
                 element = elementClass.getDeclaredConstructor().newInstance();
             }
 
-            initialiseDataFields(parentNode, element);
+            initialiseDataFields(parentElement, element);
             return element;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new IllegalStateException("Unable to create new child element", e);
@@ -204,8 +256,6 @@ public class JXMLElementFactory {
     public <T extends JFileStoredData> void initialiseStoredData(T fileStoredData)
     {
         validateNodeName(documentElement, fileStoredData.getClass());
-
-        JAttributes classAttributes = createAttributes(documentElement, fileStoredData.getClass());
         initialiseDataFields(documentElement, fileStoredData);
     }
 }

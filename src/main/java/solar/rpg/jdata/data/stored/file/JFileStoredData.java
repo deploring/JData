@@ -11,6 +11,7 @@ import solar.rpg.jdata.data.stored.file.factory.JXMLElementFactory;
 import solar.rpg.jdata.data.stored.generic.JStoredData;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 
 /**
@@ -25,7 +26,7 @@ public abstract class JFileStoredData extends JStoredData implements IJAttributa
     //TODO: Subscriber of changes? Detect changes in some way
 
     @Nullable
-    private Path filePath;
+    private File file;
     @Nullable
     private JAttributes attributes;
 
@@ -39,9 +40,7 @@ public abstract class JFileStoredData extends JStoredData implements IJAttributa
     {
         if (getStoredDataState() != JStoredDataState.UNITIALISED)
             throw new IllegalStateException("Already initialised");
-        this.filePath = filePath;
-
-        File file = filePath.toFile();
+        this.file = filePath.toFile();
 
         if (file.exists()) initialiseExisting();
         else initialiseNew();
@@ -53,31 +52,42 @@ public abstract class JFileStoredData extends JStoredData implements IJAttributa
         attributes = fileElementFactory.createAttributes(this.getClass());
         fileElementFactory.initialiseDataFields(this);
         setStoredDataState(JStoredDataState.CREATED);
+
+        try {
+            if (!getFile().createNewFile())
+                throw new IOException();
+        } catch (IOException e) {
+            throw new IllegalArgumentException(String.format("Unable to create stored data file %s", getFile()), e);
+        }
     }
 
     private void initialiseExisting()
     {
-        String fileExtension = FilenameUtils.getExtension(filePath.toFile().getName()).toLowerCase();
+        String fileExtension = FilenameUtils.getExtension(getFile().getName()).toLowerCase();
         switch (fileExtension) {
-            case "xml":
-                JXMLElementFactory xmlElementFactory = new JXMLElementFactory(filePath);
+            case "xml" -> {
+                JXMLElementFactory xmlElementFactory = new JXMLElementFactory(getFile());
                 //TODO: Should we make an overloaded method that automatically uses the document element?
-                xmlElementFactory.createAttributes(xmlElementFactory.getDocumentElement(), this.getClass());
-                break;
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported file extension .%s", fileExtension));
+                attributes = xmlElementFactory.createAttributes(
+                    xmlElementFactory.getDocumentElement(),
+                    this.getClass());
+                xmlElementFactory.initialiseStoredData(this);
+            }
+            default -> throw new IllegalArgumentException(String.format(
+                "Unsupported file extension .%s",
+                fileExtension));
         }
         setStoredDataState(JStoredDataState.UNCHANGED);
     }
 
     /**
-     * @return {@link Path} object representing the file system path to the stored data file.
+     * @return {@link File} object representing stored data file on the filesystem.
      */
     @NotNull
-    public final Path getFilePath()
+    public final File getFile()
     {
-        if (filePath == null) throw new IllegalStateException("Not initialised");
-        return filePath;
+        if (file == null) throw new IllegalStateException("Not initialised");
+        return file;
     }
 
     @NotNull

@@ -1,13 +1,20 @@
 package solar.rpg.jdata.data.test.stored.xml.classes;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.file.JFileElement;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
+import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
 import solar.rpg.jdata.data.stored.file.attribute.JHasAttributes;
 
 @JHasAttributes(names = "phoneType",
                 types = Phone.PhoneType.class)
 public class Phone extends JFileElement {
+
+    public Phone(@NotNull JAttributes attributes)
+    {
+        super(attributes);
+    }
 
     /**
      * Country code of the phone number. The '+' prefix should not be included.
