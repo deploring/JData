@@ -1,6 +1,7 @@
 package solar.rpg.jdata.data.stored.file.factory;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,13 +26,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * This factory class is used in the process of instantiating file elements and stored data from existing file data.
- * Nested elements are also instantiated from existing file data.
+ * This factory class is used in the process of instantiating file elements and stored data from existing XML data.
+ * Nested elements are also instantiated from existing XML data.
  *
  * @author jskinner
  * @since 1.0.0
  */
-public class JXMLElementFactory {
+public class JXMLElementFactory extends JFileElementFactory {
 
     @NotNull
     private final Element documentElement;
@@ -51,10 +52,16 @@ public class JXMLElementFactory {
         }
     }
 
-    @NotNull
-    public final Element getDocumentElement()
+    @Override
+    public void initialiseStoredData(@NotNull JFileStoredData fileStoredData)
     {
-        return documentElement;
+        Class<? extends JFileStoredData> storedDataClass = fileStoredData.getClass();
+        validateNodeName(documentElement, storedDataClass);
+
+        JAttributes attributes = createAttributes(documentElement, storedDataClass.getAnnotation(JHasAttributes.class));
+        initialiseAttributes(fileStoredData, attributes, new JAttributes());
+
+        initialiseDataFields(documentElement, fileStoredData);
     }
 
     /**
@@ -81,25 +88,21 @@ public class JXMLElementFactory {
     {
         String nodeName = node.getNodeName();
         if (!nodeName.equalsIgnoreCase(expectedName)) throw new IllegalArgumentException(String.format(
-            "Node name %s does not match class name %s",
+            "Name %s does not match expected name %s",
             nodeName,
             expectedName
         ));
     }
 
     @NotNull
-    public JAttributes createAttributes(@NotNull Node node, @NotNull Class<?> attributable)
+    public JAttributes createAttributes(@NotNull Element element, @Nullable JHasAttributes attributes)
     {
-        if (!IJAttributable.class.isAssignableFrom(attributable))
-            throw new IllegalArgumentException("Provided class is not attributable");
-        if (!attributable.isAnnotationPresent(JHasAttributes.class))
-            return new JAttributes();
-        if (!node.hasAttributes()) throw new IllegalArgumentException(String.format(
-            "Attributes for %s not found",
-            attributable.getSimpleName()
-        ));
+        if (attributes == null) return new JAttributes();
 
-        JHasAttributes attributes = attributable.getAnnotation(JHasAttributes.class);
+        if (!element.hasAttributes()) throw new IllegalArgumentException(String.format(
+            "Attributes for %s not found",
+            element.getNodeName()
+        ));
 
         if (attributes.names().length != attributes.types().length)
             throw new IllegalArgumentException("Number of attribute names and types do not match");
@@ -107,11 +110,12 @@ public class JXMLElementFactory {
         return new JAttributes(
             List.of(attributes.names()),
             IntStream.range(0, attributes.names().length).mapToObj(i -> {
-                Node attribute = node.getAttributes().item(i);
+                Node attribute = element.getAttributes().item(i);
                 validateNodeName(attribute, attributes.names()[i]);
-                return JDataEncoder.fromString(attribute.getNodeValue(), attributes.types()[i]);
+                return JDataEncoder.fromString(attribute.getTextContent(), attributes.types()[i]);
             }).collect(Collectors.toList()),
-            List.of(attributes.types()));
+            List.of(attributes.types())
+        );
     }
 
     /**
@@ -151,8 +155,9 @@ public class JXMLElementFactory {
             }
 
             Node targetNode = getTargetNode(parentElement, field.getName());
+            validateNodeName(targetNode, field.getName());
 
-            if (!IJAttributable.class.isAssignableFrom(fieldType)) {
+            if (!IJFileElementModel.class.isAssignableFrom(fieldType)) {
                 JUtils.writePrivateField(
                     dataFieldsObject,
                     field,
@@ -161,7 +166,16 @@ public class JXMLElementFactory {
                 continue;
             }
 
-            JAttributes fieldAttributes = createAttributes(targetNode, fieldType);
+            if (!(targetNode instanceof Element element))
+                throw new IllegalArgumentException(String.format(
+                    "Node %s is not an element (is it missing attributes?)",
+                    field.getName()
+                ));
+
+            JAttributes fieldAttributes =
+                field.isAnnotationPresent(JHasAttributes.class)
+                ? createAttributes(element, field.getAnnotation(JHasAttributes.class))
+                : new JAttributes();
 
             if (JAttributedField.class.isAssignableFrom(fieldType)) {
                 JUtils.writePrivateField(
@@ -177,15 +191,12 @@ public class JXMLElementFactory {
                 );
             }
 
-            if (!(targetNode instanceof Element targetElement))
-                throw new IllegalArgumentException(String.format("%s was not an element", targetNode.getNodeName()));
-
             if (JFileElementGroup.class.isAssignableFrom(fieldType)) {
                 JUtils.writePrivateField(
                     dataFieldsObject,
                     field,
                     createElementGroup(
-                        targetElement,
+                        element,
                         (Class<? extends JFileElement>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0],
                         fieldAttributes)
                 );
@@ -193,7 +204,7 @@ public class JXMLElementFactory {
                 JUtils.writePrivateField(
                     dataFieldsObject,
                     field,
-                    createElement(targetElement, fieldType, fieldAttributes));
+                    createElement(element, fieldType, fieldAttributes));
             }
         }
     }
@@ -224,7 +235,10 @@ public class JXMLElementFactory {
             throw new IllegalArgumentException("Class does not inherit from JFileElement");
 
         try {
-            JAttributes elementClassAttributes = createAttributes(parentElement, elementClass);
+            JAttributes elementClassAttributes = createAttributes(
+                parentElement,
+                elementClass.getAnnotation(JHasAttributes.class)
+            );
 
             T element;
             boolean hasClassAttributes = !elementClassAttributes.isEmpty();
@@ -251,11 +265,5 @@ public class JXMLElementFactory {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new IllegalStateException("Unable to create new child element", e);
         }
-    }
-
-    public <T extends JFileStoredData> void initialiseStoredData(T fileStoredData)
-    {
-        validateNodeName(documentElement, fileStoredData.getClass());
-        initialiseDataFields(documentElement, fileStoredData);
     }
 }

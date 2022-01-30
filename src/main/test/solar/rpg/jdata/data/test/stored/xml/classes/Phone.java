@@ -11,11 +11,6 @@ import solar.rpg.jdata.data.stored.file.attribute.JHasAttributes;
                 types = Phone.PhoneType.class)
 public class Phone extends JFileElement {
 
-    public Phone(@NotNull JAttributes attributes)
-    {
-        super(attributes);
-    }
-
     /**
      * Country code of the phone number. The '+' prefix should not be included.
      */

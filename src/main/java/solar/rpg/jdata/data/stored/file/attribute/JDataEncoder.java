@@ -1,6 +1,8 @@
 package solar.rpg.jdata.data.stored.file.attribute;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.JUtils;
 
 import java.util.HashMap;
@@ -24,32 +26,21 @@ public final class JDataEncoder {
 
     static {
         decoderFunctions.put(String.class, s -> s);
-        decoderFunctions.put(boolean.class, Boolean::parseBoolean);
         decoderFunctions.put(Boolean.class, Boolean::parseBoolean);
-        decoderFunctions.put(char.class, s -> {
-            if (s.length() != 1) throw new IllegalArgumentException("Cannot parse Character");
-            return (Character) s.charAt(0);
-        });
         decoderFunctions.put(Character.class, s -> {
             if (s.length() != 1) throw new IllegalArgumentException("Cannot parse Character");
-            return (char) s.charAt(0);
+            return s.charAt(0);
         });
-        decoderFunctions.put(int.class, Integer::parseInt);
         decoderFunctions.put(Integer.class, Integer::parseInt);
-        decoderFunctions.put(float.class, Float::parseFloat);
         decoderFunctions.put(Float.class, Float::parseFloat);
-        decoderFunctions.put(double.class, Double::parseDouble);
         decoderFunctions.put(Double.class, Double::parseDouble);
-        decoderFunctions.put(short.class, Short::parseShort);
         decoderFunctions.put(Short.class, Short::parseShort);
-        decoderFunctions.put(byte.class, Byte::parseByte);
         decoderFunctions.put(Byte.class, Byte::parseByte);
         decoderFunctions.put(UUID.class, UUID::fromString);
     }
 
     private static <E extends Enum<E>> E decodeEnum(@NotNull String source, @NotNull Class<E> enumClass)
     {
-
         return E.valueOf(enumClass, source);
     }
 
@@ -66,15 +57,30 @@ public final class JDataEncoder {
     @NotNull
     public static <T> T fromString(@NotNull String source, @NotNull Class<T> targetClass)
     {
-        if (Enum.class.isAssignableFrom(targetClass)) return (T) decodeEnum(source, JUtils.resolveClass(Enum.class, targetClass));
-        if (!decoderFunctions.containsKey(targetClass))
-            throw new UnsupportedOperationException(String.format("Cannot decode %s", targetClass.getSimpleName()));
-        return (T) decoderFunctions.get(targetClass).apply(source);
+        if (Enum.class.isAssignableFrom(targetClass)) return (T) decodeEnum(
+            source,
+            JUtils.resolveClass(Enum.class, targetClass));
+
+        return (T) decoderFunctions.get(
+            decoderFunctions.keySet().stream()
+                .filter(clazz -> ClassUtils.isAssignable(targetClass, clazz))
+                .findFirst()
+                .orElseThrow(() -> new UnsupportedOperationException(String.format(
+                    "Cannot decode %s",
+                    targetClass.getSimpleName()
+                )))
+        ).apply(source);
     }
 
-    @NotNull
-    public static <T> String toString(@NotNull T source)
+    @Nullable
+    public static <T> String toString(@Nullable T source)
     {
+        if (source == null) return null;
+        if (!decoderFunctions.containsKey(source.getClass()) && !(source instanceof Enum))
+            throw new UnsupportedOperationException(String.format(
+                "Cannot encode %s",
+                source.getClass().getSimpleName()
+            ));
         return source.toString();
     }
 }

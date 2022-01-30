@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Classes and fields marked with this annotation should inherit from the {@link IJAttributable} interface. This allows
+ * Classes and fields marked with this annotation should inherit from the {@link IJFileElementModel} interface. This allows
  * {@link JAttributes} to be loaded for an object, or created fresh at runtime, notably for {@link JFileStoredData}
  * objects.
  *

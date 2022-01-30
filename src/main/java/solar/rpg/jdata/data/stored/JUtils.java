@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -46,21 +45,6 @@ public final class JUtils {
     }
 
     /**
-     * Retrieves the generic object type parameter at runtime.
-     *
-     * @param classWithGenericType The class to retrieve the type parameter from.
-     * @param <T>                  The expected type of parameter. <em>Warning: This is unchecked and will not throw
-     *                             compile errors.</em>
-     * @return The class of the type parameter.
-     */
-    @SuppressWarnings("unchecked")
-    @NotNull
-    public static <T> Class<T> getGenericType(@NotNull Class<?> classWithGenericType)
-    {
-        return (Class<T>) ((ParameterizedType) classWithGenericType.getGenericSuperclass()).getActualTypeArguments()[0];
-    }
-
-    /**
      * Attempts to set the given value on the given {@link Field} in the given {@code Object}.
      *
      * @param instance The {@code Object} instance to update field for.
@@ -91,6 +75,27 @@ public final class JUtils {
             field.setAccessible(false);
         } catch (IllegalAccessException e) {
             throw new IllegalArgumentException("Unable to write to field");
+        }
+    }
+
+    @SuppressWarnings("unchecked") // The caller is expected to know the field type.
+    public static <T> T readPrivateField(@NotNull Object instance, @NotNull Field field)
+    {
+        try {
+            if (!Modifier.isPrivate(field.getModifiers()))
+                throw new IllegalArgumentException("Field is not private");
+            field.setAccessible(true);
+            T result = (T) field.get(instance);
+            field.setAccessible(false);
+            return result;
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException(
+                String.format(
+                    "Cannot access field %s on class %s",
+                    field.getName(),
+                    instance.getClass().getSimpleName()),
+                e
+            );
         }
     }
 }

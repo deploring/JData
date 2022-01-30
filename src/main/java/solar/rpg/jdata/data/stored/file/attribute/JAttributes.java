@@ -1,15 +1,17 @@
 package solar.rpg.jdata.data.stored.file.attribute;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * Stores attribute information for a concrete implementation of the {@link IJAttributable} interface. The following
+ * Stores attribute information for a concrete implementation of the {@link IJFileElementModel} interface. The following
  * information is stored for each attribute:
  * <ul>
  *     <li>Name, for identification.</li>
@@ -20,7 +22,7 @@ import java.util.stream.IntStream;
  * @author jskinner
  * @since 1.0.0
  */
-public class JAttributes {
+public class JAttributes implements Iterable<String> {
 
     /**
      * Only certain primitive types can be stored as attribute values.
@@ -28,6 +30,9 @@ public class JAttributes {
     private static final List<Class<?>> ALLOWED_TYPES = List.of(new Class<?>[]{
         String.class,
         Character.class,
+        char.class,
+        Boolean.class,
+        boolean.class,
         Number.class,
         Enum.class
     });
@@ -146,11 +151,18 @@ public class JAttributes {
         if (value == null) return;
 
         Class<?> actualClass = value.getClass();
-        if (!expectedClass.isAssignableFrom(actualClass))
+        if (!ClassUtils.isAssignable(actualClass, expectedClass))
             throw new IllegalArgumentException(String.format(
                 "Value type %s does not match expected type %s",
                 actualClass.getSimpleName(),
                 expectedClass
             ));
+    }
+
+    @NotNull
+    @Override
+    public Iterator<String> iterator()
+    {
+        return attributeNames.iterator();
     }
 }

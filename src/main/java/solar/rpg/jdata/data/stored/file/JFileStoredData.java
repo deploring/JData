@@ -4,7 +4,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import solar.rpg.jdata.data.stored.JStoredDataState;
-import solar.rpg.jdata.data.stored.file.attribute.IJAttributable;
+import solar.rpg.jdata.data.stored.file.attribute.IJFileElementModel;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
 import solar.rpg.jdata.data.stored.file.factory.JNewFileElementFactory;
 import solar.rpg.jdata.data.stored.file.factory.JXMLElementFactory;
@@ -21,7 +21,7 @@ import java.nio.file.Path;
  * @author jskinner
  * @since 1.0.0
  */
-public abstract class JFileStoredData extends JStoredData implements IJAttributable {
+public abstract class JFileStoredData extends JStoredData implements IJFileElementModel {
 
     //TODO: Subscriber of changes? Detect changes in some way
 
@@ -49,8 +49,7 @@ public abstract class JFileStoredData extends JStoredData implements IJAttributa
     private void initialiseNew()
     {
         JNewFileElementFactory fileElementFactory = new JNewFileElementFactory();
-        attributes = fileElementFactory.createAttributes(this.getClass());
-        fileElementFactory.initialiseDataFields(this);
+        fileElementFactory.initialiseStoredData(this);
         setStoredDataState(JStoredDataState.CREATED);
 
         try {
@@ -68,9 +67,6 @@ public abstract class JFileStoredData extends JStoredData implements IJAttributa
             case "xml" -> {
                 JXMLElementFactory xmlElementFactory = new JXMLElementFactory(getFile());
                 //TODO: Should we make an overloaded method that automatically uses the document element?
-                attributes = xmlElementFactory.createAttributes(
-                    xmlElementFactory.getDocumentElement(),
-                    this.getClass());
                 xmlElementFactory.initialiseStoredData(this);
             }
             default -> throw new IllegalArgumentException(String.format(

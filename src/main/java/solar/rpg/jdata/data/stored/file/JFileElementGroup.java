@@ -2,7 +2,6 @@ package solar.rpg.jdata.data.stored.file;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import solar.rpg.jdata.data.stored.JUtils;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
 import solar.rpg.jdata.data.stored.file.factory.JNewFileElementFactory;
 
@@ -139,6 +138,12 @@ public final class JFileElementGroup<E extends JFileElement> extends JFileElemen
     public void clear()
     {
         children.clear();
+    }
+
+    @NotNull
+    public Class<E> getElementClass()
+    {
+        return elementClass;
     }
 
     @NotNull

@@ -13,7 +13,7 @@ import solar.rpg.jdata.data.stored.file.JFileStoredData;
  * @author jskinner
  * @since 1.0.0
  */
-public final class JAttributedField<T> implements IJAttributable {
+public final class JAttributedField<T> implements IJFileElementModel {
 
     @NotNull
     public JAttributes attributes;

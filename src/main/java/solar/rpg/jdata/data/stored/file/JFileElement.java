@@ -1,9 +1,11 @@
 package solar.rpg.jdata.data.stored.file;
 
 import org.jetbrains.annotations.NotNull;
-import solar.rpg.jdata.data.stored.file.attribute.IJAttributable;
+import org.jetbrains.annotations.Nullable;
+import solar.rpg.jdata.data.stored.file.attribute.IJFileElementModel;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributedField;
 import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
+import solar.rpg.jdata.data.stored.file.factory.JFileElementFactory;
 
 /**
  * Represents an element node in a file structure. Elements can contain instances of other elements, or of data, usually
@@ -14,33 +16,29 @@ import solar.rpg.jdata.data.stored.file.attribute.JAttributes;
  * @author jskinner
  * @since 1.0.0
  */
-public abstract class JFileElement implements IJAttributable {
+public abstract class JFileElement implements IJFileElementModel {
 
-    @NotNull
-    private final JAttributes attributes;
+    @Nullable
+    private JAttributes attributes;
 
-    /**
-     * Constructs a new {@code JFileElement} instance.
-     *
-     * @param attributes The attributes associated with this element.
-     */
-    public JFileElement(@NotNull JAttributes attributes)
+    protected JFileElement(@NotNull JAttributes attributes)
     {
         this.attributes = attributes;
     }
 
     /**
-     * Constructs a new {@code JFileElement} instance with no attributes.
+     * Constructs a new {@code JFileElement} instance. The attributes must be instantiated separately by an {@link
+     * JFileElementFactory}.
      */
     public JFileElement()
     {
-        this.attributes = new JAttributes();
     }
 
     @NotNull
     @Override
     public JAttributes getAttributes()
     {
+        if (attributes == null) throw new IllegalStateException("Not initialised");
         return attributes;
     }
 }
